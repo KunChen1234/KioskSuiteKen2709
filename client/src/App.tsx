@@ -40,5 +40,4 @@ function App() {
     <div className="bg-black">bottom</div>
   </div>);
 }
-//a
 export default App;
