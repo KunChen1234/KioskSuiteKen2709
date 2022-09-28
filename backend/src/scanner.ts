@@ -2,8 +2,9 @@
 import { SerialPort } from "serialport";
 import { DelimiterParser } from '@serialport/parser-delimiter'
 import { EventEmitter } from "node:events";
-import{readTag} from "@roobuck-rnd/nfc_tools";
-import {parser} from "@roobuck-rnd/nfc_tools"
+import { readTag } from "@roobuck-rnd/nfc_tools";
+import { Server, Socket } from "socket.io";
+import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./wsEvents"
 interface RoobuckTag {
     MAC: string;
     SN: string;
@@ -23,18 +24,11 @@ async function FindCOM(): Promise<{ result: boolean, path: string }> {
 
     return new Promise(async (resolve) => {
         let ports = await SerialPort.list();
-        const port=ports.filter(port=>{
-            return port.vendorId=="09D8"
+        const port = ports.filter(port => {
+            return port.vendorId == "09D8"
         })
-        const COM=port[0].path
-        // console.log(ports)
-        // for (const element of ports) {
-        //     if (element.vendorId === "09D8") {
-        //         console.log("find")
-        //         findcom = true
-        //         COM = element.path
-        //     }
-        // }
+        const COM = port[0].path
+
         if (port) {
             resolve({ result: true, path: COM })
         }
@@ -66,125 +60,60 @@ async function command(port: SerialPort, command: String, dataParser: DelimiterP
         })
     })
 }
-async function EncodeBufferToTag(data: Buffer) {
+async function CheckdataSuccess(data: Buffer) {
     if (data.subarray(0, 4).toString() === "0000") {
-        console.log("No card")
+        console.log("No card");
     }
     else if (data && Buffer.isBuffer(data) && data.subarray(0, 4).toString() === "0001" && data.length > 4) {
         // asyncRead(data);
-        console.log(data)
-        console.log(data.toString())
-        console.log("Get card infor")
+        console.log(data);
+        console.log(data.toString());
+        console.log("Get card infor");
     }
     else {
-        console.log("scan failed")
+        console.log("scan failed");
     }
 }
-async function main() {
-    const internalEvents = new EventEmitter
+
+
+async function Scanmain(client: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
     const { result, path } = await FindCOM()
     if (result) {
         let port = await OpenPort(path)
         let runLoop = true
-        // port.on("open", async () => {
-        //     internalEvents.on("shutdown", () => {
-        //         runLoop = false;
-        //     })
-        // });
+        // client.emit("aa",port)
         const dataParser = port.pipe(new DelimiterParser({ delimiter: "\r", includeDelimiter: false }));
         while (runLoop) {
-            let data = await command(port, '050010\r', dataParser)
-            console.log(data)
-            const tagData = await readTag(port,dataParser);
-            console.log(tagData);
+            const data = await command(port, '050010\r', dataParser)
+            if (data.toString() === "0000") {
+                console.log("no card");
+
+            }
+            else {
+                const tagData = await readTag(port, dataParser);
+                // client.emit("tagID",data.toString());
+                // console.log("tagData: " + tagData);
+                const tagID = data.subarray(4, data.length).toString();
+                if (tagData) {
+                    const start = tagData.indexOf("\{")
+                    const end = tagData.indexOf("\}")
+                    const info = tagData.substring(start, end + 1)
+                    console.log("info:" + info)
+                    const obj = JSON.parse(info)
+                    // console.log("type:"+obj.MAC)
+                    client.emit("MAC", obj.MAC)
+                    client.emit("SN", obj.SN)
+                }
+
+            }
             dataParser.removeAllListeners();
         }
+        
     }
     else {
         console.log("Connect to scanner please")
     }
-   
- 
 
 }
-
-
-
-// async function asyncRead(data: Buffer) {
-//     console.log("Buffer isBuffer: " + Buffer.isBuffer(data))
-//     console.log("data: " + data)
-//     console.log("data length: " + data.length)
-//     console.log("data first four: " + data.subarray(0, 4).toString())
-//     if (data && Buffer.isBuffer(data) && data.subarray(0, 4).toString() === "0001" && data.length > 4) {
-//         const converted = Buffer.from(data.toString(), "hex");
-//         const start = converted.toString().indexOf("{");
-//         const end = converted.toString().lastIndexOf("}");
-//         const strCon = converted.subarray(start, end + 1).toString("utf8").replace(/\0/g, "");
-//         console.log("converted: " + converted.toString())
-//         console.log("start: " + start)
-//         console.log("end: " + end)
-//         let dataObj: RoobuckTag | null = null;
-//         console.log(converted.toString())
-//         try{
-//             dataObj=JSON.parse()
-//         }catch(err)
-//         {
-//             console.log(err)
-//         }
-//         // try {
-
-//         //     // return JSON.parse(strCon);
-//         // } catch (err) {
-//         //     // await command(port, "0407646006E3000400\r", dataParser); // Short high Beep
-//         //     // await command(port, "0407646004F401F401\r", dataParser); // long low Beep
-//         //     // await command(port, "041207\r", dataParser);
-//         //     console.log(err);
-//         // }
-//     } else {
-//         // await command(port, "0407646006E3000400\r", dataParser); // Short high Beep
-//         // await command(port, "0407646004F401F401\r", dataParser); // long low Beep
-//         // await command(port, "041207\r", dataParser);
-//         console.log("Failed to Read Tag data");
-//     }
-// }
-
-// async function asyncRead(comPort: SerialPort, dataParser: DelimiterParser): Promise<[string, unknown]> {
-// 	await command(comPort, "041007\r", dataParser);
-// 	await command(comPort, "041101\r", dataParser);
-// 	// eslint-disable-next-line no-constant-condition
-// 	while (true) {
-// 		try {
-// 			const { result, tagId } = await scanTag(comPort, dataParser);
-// 			if (result && tagId) {
-// 				await command(comPort, "041107\r", dataParser);
-// 				const data = await command(comPort, "20020420\r", dataParser); // Read data encoded in tag
-// 				if (data && Buffer.isBuffer(data) && data.subarray(0, 4).toString() === "0001" && data.length > 4) {
-// 					const converted = Buffer.from(data.toString(), "hex");
-// 					const start = converted.toString().indexOf("{");
-// 					const end = converted.toString().lastIndexOf("}");
-// 					const strCon = converted.subarray(start, end + 1).toString("utf8").replace(/\0/g, "");
-// 					try {
-// 						return [tagId, JSON.parse(strCon)];
-// 					} catch (err) {
-// 						await command(comPort, "0407646006E3000400\r", dataParser); // Short high Beep
-// 						await command(comPort, "0407646004F401F401\r", dataParser); // long low Beep
-// 						await command(comPort, "041207\r", dataParser);
-// 						console.error(err);
-// 					}
-// 				} else {
-// 					await command(comPort, "0407646006E3000400\r", dataParser); // Short high Beep
-// 					await command(comPort, "0407646004F401F401\r", dataParser); // long low Beep
-// 					await command(comPort, "041207\r", dataParser);
-// 					console.log("Failed to Read Tag data");
-// 				}
-// 			}
-// 		} catch (err) {
-// 			console.error(err);
-// 		}
-// 	}
-// }
-
-
-
-
-main()
+// Scanmain()
+export default Scanmain

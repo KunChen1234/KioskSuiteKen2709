@@ -9,6 +9,7 @@
   "author": "ken",
   "license": "ISC",
   "dependencies": {
+    "@roobuck-rnd/nfc_tools": "github:Roobuck-RnD/nfc_tools",
     "serialport": "^10.4.0",
     "socket.io": "^4.5.2",
     "ts-node": "^10.9.1"

@@ -8,7 +8,12 @@ interface ServerToClientEvents {
 	peripheralResults: (peripheralResults: {dsrcOk: boolean | null}) => void;
 	testStatus: (newStatus: string) => void;
 	endTest: (testResult: boolean) => void;
+
+
 	aa:(name:string)=>void;
+	tagID:(tagID:string)=>void;
+	MAC:(MAC:string)=>void;
+	SN:(SN:string)=>void;
 }
 interface ClientToServerEvents {
 	hello: () => void;
