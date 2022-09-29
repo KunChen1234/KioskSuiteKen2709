@@ -1,14 +1,21 @@
+import React from 'react';
 import { useEffect, useState } from 'react';
 import './App.css';
 import Clock from './comment/Clock';
 import useSocket from './context/socket';
+import Personalinfo from './personnalinfo';
 
 function App() {
   const socket = useSocket();
-  let mac = "abc";
   socket.emit("beginTest")
   const [macAddress, setMacAddress] = useState<string>();
-  const [SN,setSN]= useState<string>();
+  const [SN, setSN] = useState<string>();
+  const [State, setState] = useState<Element>();
+  function onclick() {
+    console.log("a")
+
+
+  }
   useEffect(() => {
     socket.on("MAC", (msg) => {
       if (msg && typeof msg === "string") {
@@ -26,7 +33,7 @@ function App() {
       socket.removeAllListeners("MAC");
       socket.removeAllListeners("SN")
     };
-    
+
   });
   return (
     <div className="grid grid-flow-6 h-screen">
@@ -37,12 +44,14 @@ function App() {
         </div>
         <div className="grid grid-flow-3 text-white text-sm text-right">
           <div className="row-span-2 text-sm">bb</div>
-          <div className="mb-0"><Clock timer={10000}/></div>
+          <div className="mb-0"><Clock timer={10000} /></div>
         </div>
       </div>
       <div className=" row-span-4 items-center text-center">
         {/* <div className="p-6 max-w-sm mx-auto bg-white rounded-xl shadow-lg  items-center space-x-4"> */}
         <div className='flex flex-row'>
+          <Personalinfo></Personalinfo>
+          <button onClick={onclick}>cc</button>
           <table>
             <tbody>
               <tr><td>MAC:</td><td>{macAddress}</td></tr>
