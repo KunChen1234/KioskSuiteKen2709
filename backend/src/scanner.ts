@@ -75,8 +75,8 @@ async function CheckdataSuccess(data: Buffer) {
     }
 }
 
-
-async function Scanmain(client: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
+client: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
+async function Scanmain() {
     const { result, path } = await FindCOM()
     if (result) {
         let port = await OpenPort(path)
@@ -92,18 +92,18 @@ async function Scanmain(client: Socket<ClientToServerEvents, ServerToClientEvent
             else {
                 const tagData = await readTag(port, dataParser);
                 // client.emit("tagID",data.toString());
-                // console.log("tagData: " + tagData);
+                console.log("tagData: " + tagData);
                 const tagID = data.subarray(4, data.length).toString();
-                if (tagData) {
-                    const start = tagData.indexOf("\{")
-                    const end = tagData.indexOf("\}")
-                    const info = tagData.substring(start, end + 1)
-                    console.log("info:" + info)
-                    const obj = JSON.parse(info)
-                    // console.log("type:"+obj.MAC)
-                    client.emit("MAC", obj.MAC)
-                    client.emit("SN", obj.SN)
-                }
+                // if (tagData) {
+                //     const start = tagData.indexOf("\{")
+                //     const end = tagData.indexOf("\}")
+                //     const info = tagData.substring(start, end + 1)
+                //     console.log("info:" + info)
+                //     const obj = JSON.parse(info)
+                //     console.log("type:"+typeof obj)
+                //     // client.emit("MAC", obj.MAC)
+                //     // client.emit("SN", obj.SN)
+                // }
 
             }
             dataParser.removeAllListeners();
@@ -115,5 +115,5 @@ async function Scanmain(client: Socket<ClientToServerEvents, ServerToClientEvent
     }
 
 }
-// Scanmain()
-export default Scanmain
+Scanmain()
+// export default Scanmain
