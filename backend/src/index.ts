@@ -7,7 +7,7 @@ import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketDa
 import { DelimiterParser, SerialPort } from "serialport";
 import { EventEmitter } from "node:events";
 import { readTag } from "@roobuck-rnd/nfc_tools";
-import Scanmain from "./scanner";
+// import Scanmain from "./scanner";
 
 const internalEvents = new EventEmitter;
 async function  main() {
@@ -41,7 +41,7 @@ async function  main() {
 	});
 	wsServer.on("connect", async(client: WsClient) => {
 		console.log("a user connect")
-		await Scanmain(client)
+		// await Scanmain(client)
 		client.once("beginTest", async () => {
 			
 		});

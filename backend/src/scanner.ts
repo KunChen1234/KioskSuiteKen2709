@@ -71,11 +71,11 @@ async function CheckdataSuccess(data: Buffer) {
         console.log("Get card infor");
     }
     else {
-        console.log("scan failed");
+
     }
 }
+// client: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
 
-client: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
 async function Scanmain() {
     const { result, path } = await FindCOM()
     if (result) {
@@ -87,9 +87,8 @@ async function Scanmain() {
             const data = await command(port, '050010\r', dataParser)
             if (data.toString() === "0000") {
                 console.log("no card");
-
             }
-            else {
+            else if (data && Buffer.isBuffer(data) && data.subarray(0, 4).toString() === "0001" && data.length > 4) {
                 const tagData = await readTag(port, dataParser);
                 // client.emit("tagID",data.toString());
                 console.log("tagData: " + tagData);
@@ -106,14 +105,19 @@ async function Scanmain() {
                 // }
 
             }
+            else {
+                console.log("scan failed");
+            }
             dataParser.removeAllListeners();
         }
-        
+
     }
     else {
         console.log("Connect to scanner please")
     }
 
 }
+
+//SN: C0409W-4C7525BC7020
 Scanmain()
 // export default Scanmain

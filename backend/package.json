@@ -9,9 +9,15 @@
   "author": "ken",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^4.4.0",
     "@roobuck-rnd/nfc_tools": "github:Roobuck-RnD/nfc_tools",
     "serialport": "^10.4.0",
-    "socket.io": "^4.5.2",
-    "ts-node": "^10.9.1"
+    "socket.io": "^4.5.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.8.2",
+    "prisma": "^4.4.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.4"
   }
 }
