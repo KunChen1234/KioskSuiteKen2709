@@ -29,9 +29,9 @@ function Personalinfo() {
                 {Array.from(a).map(entry => {
                     return <div key={entry.name} className="max-w-sm max-h-sm bg-white shadow-lg grid grid-flow-2">
                         <div className="clo-flow-1">
-                            <img className="inline-block h-20 w-20 rounded-full ring-2 ring-black" src={require('./image/persontest.jpg')}></img>
+                            <img className="transform scale-75 inline-block h-20 w-20 rounded-full ring-2 ring-black" src={require('./image/persontest.jpg')}></img>
                         </div>
-                        <div className="clo-flow-1">
+                        <div className="clo-flow-1 min-h-lg min-w-lg">
                             <p>SN: {entry.serialnumber}</p>
                             <p>Name: {entry.name}</p>
                             <p>Job: {entry.job}</p>

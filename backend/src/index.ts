@@ -43,7 +43,10 @@ async function main() {
 	});
 	wsServer.on("connect", async (client: WsClient) => {
 		console.log("a user connect");
-		await Scanmain(client);
+
+		// await Scanmain(client);
+
+
 	});
 
 
