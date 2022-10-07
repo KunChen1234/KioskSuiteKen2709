@@ -1,14 +1,22 @@
 //Interface of NFC
+
+/* Used for scanning data from NFC and get data from database
+*/
 import { SerialPort } from "serialport";
 import { DelimiterParser } from '@serialport/parser-delimiter'
 import { EventEmitter } from "node:events";
 import { readTag } from "@roobuck-rnd/nfc_tools";
 import { Server, Socket } from "socket.io";
-import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./wsEvents"
+import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./wsEvents";
+import SearchingBySN from "../database/search";
+import { PrismaClient } from "@prisma/client";
+import { Result } from "../database/search"
+import { Client } from "socket.io/dist/client";
 interface RoobuckTag {
     MAC: string;
     SN: string;
 }
+
 function isRoobuckTag(obj: unknown): obj is RoobuckTag {
     if (obj && typeof obj === "object") {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -76,41 +84,73 @@ async function CheckdataSuccess(data: Buffer) {
 }
 // client: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
 
-async function Scanmain() {
-    const { result, path } = await FindCOM()
+async function Scanmain(client: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
+    let personalInfo:Result[]=[];
+    const { result, path } = await FindCOM();
     if (result) {
-        let port = await OpenPort(path)
+        let port = await OpenPort(path);
         let runLoop = true
+        client.on("disconnect",()=>
+        {
+            console.log("disconncet")
+            port.close();
+        })
         // client.emit("aa",port)
         const dataParser = port.pipe(new DelimiterParser({ delimiter: "\r", includeDelimiter: false }));
         while (runLoop) {
-            const data = await command(port, '050010\r', dataParser)
+            const data = await command(port, '050010\r', dataParser);
+            // const data1 = await command(port, "20020420\r", dataParser); 
+            // console.log("data1: "+data1.toString());
+            // const converted = Buffer.from(data1.toString(), "hex");
+            // console.log("conveted: "+converted.toString())
             if (data.toString() === "0000") {
                 console.log("no card");
             }
             else if (data && Buffer.isBuffer(data) && data.subarray(0, 4).toString() === "0001" && data.length > 4) {
                 const tagData = await readTag(port, dataParser);
+                
                 // client.emit("tagID",data.toString());
                 console.log("tagData: " + tagData);
-                const tagID = data.subarray(4, data.length).toString();
-                // if (tagData) {
-                //     const start = tagData.indexOf("\{")
-                //     const end = tagData.indexOf("\}")
-                //     const info = tagData.substring(start, end + 1)
-                //     console.log("info:" + info)
-                //     const obj = JSON.parse(info)
-                //     console.log("type:"+typeof obj)
-                //     // client.emit("MAC", obj.MAC)
-                //     // client.emit("SN", obj.SN)
-                // }
+                // const tagID = data.subarray(4, data.length).toString(); not used
+                if (tagData) {
+                    const start = tagData.indexOf("\{")
+                    const end = tagData.indexOf("\}")
+                    const info = tagData.substring(start, end + 1)
+                    console.log("info:" + info)
+                    const obj = JSON.parse(info)
+                    console.log("type:" + typeof obj)
+                    console.log("MAC: " + obj.MAC);
+                    console.log("SN: " + obj.SN);
+                    const prisma = new PrismaClient()
+                    const dataFromdatabase: Result | null = await SearchingBySN()
 
+                    try {
+                        await prisma.$disconnect();
+                        console.log("data closed")
+                    }
+                    catch (e) {
+                        console.error(e)
+                        await prisma.$disconnect()
+                        process.exit(1)
+                    }
+                    if (dataFromdatabase) {
+                        personalInfo.push(dataFromdatabase);
+                        client.emit("PersonalInfo", personalInfo);
+                    }
+                    else {
+                        console.log("no match info")
+                    }
+
+                    client.emit("MAC", obj.MAC)
+                    client.emit("SN", obj.SN)
+                }
             }
             else {
                 console.log("scan failed");
+                console.log("data: "+data+"isBuffer: "+Buffer.isBuffer(data)+"data.subarray: "+data.subarray(0, 4).toString()+"length: "+data.length);
             }
             dataParser.removeAllListeners();
         }
-
     }
     else {
         console.log("Connect to scanner please")
@@ -119,5 +159,5 @@ async function Scanmain() {
 }
 
 //SN: C0409W-4C7525BC7020
-Scanmain()
-// export default Scanmain
+// Scanmain()
+export default Scanmain

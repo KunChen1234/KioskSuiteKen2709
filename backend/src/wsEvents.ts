@@ -1,3 +1,4 @@
+import {Result} from "../database/search"
 interface ServerToClientEvents {
 	noArg: () => void;
 	sendId: (clientId: string) => void;
@@ -10,10 +11,13 @@ interface ServerToClientEvents {
 	endTest: (testResult: boolean) => void;
 
 
-	aa:(name:string)=>void;
 	tagID:(tagID:string)=>void;
 	MAC:(MAC:string)=>void;
 	SN:(SN:string)=>void;
+	PersonalInfo:(Info:Result[])=>void;
+
+	// section: "maintanence",
+
 }
 interface ClientToServerEvents {
 	hello: () => void;

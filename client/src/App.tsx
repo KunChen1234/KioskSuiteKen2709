@@ -4,7 +4,6 @@ import './App.css';
 import Clock from './comment/Clock';
 import useSocket from './context/socket';
 import Personalinfo from './personnalinfo';
-
 function App() {
   const socket = useSocket();
   socket.emit("beginTest")
@@ -28,7 +27,6 @@ function App() {
     socket.on('SN', (msg) => {
       setSN(msg)
     });
-
     return function socketCleanup() {
       socket.removeAllListeners("MAC");
       socket.removeAllListeners("SN")

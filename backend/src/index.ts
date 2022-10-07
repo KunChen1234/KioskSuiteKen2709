@@ -1,5 +1,5 @@
 import http from "http";
-import { createWriteStream, readFileSync, writeFileSync } from "fs";
+import { close, createWriteStream, readFileSync, writeFileSync } from "fs";
 import { normalize } from "path";
 import { IncomingMessage, ServerResponse } from "http";
 import { Server, Socket } from "socket.io";
@@ -7,10 +7,12 @@ import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketDa
 import { DelimiterParser, SerialPort } from "serialport";
 import { EventEmitter } from "node:events";
 import { readTag } from "@roobuck-rnd/nfc_tools";
-// import Scanmain from "./scanner";
+import Scanmain from "./scanner";
+import { Client } from "socket.io/dist/client";
+
 
 const internalEvents = new EventEmitter;
-async function  main() {
+async function main() {
 	let tcpPort = 8080;
 	// const options = {
 	//     key: readFileSync(normalize(`${__dirname}/../.certs/key.pem`)),
@@ -39,14 +41,12 @@ async function  main() {
 			credentials: true
 		}
 	});
-	wsServer.on("connect", async(client: WsClient) => {
-		console.log("a user connect")
-		// await Scanmain(client)
-		client.once("beginTest", async () => {
-			
-		});
+	wsServer.on("connect", async (client: WsClient) => {
+		console.log("a user connect");
+		await Scanmain(client);
 	});
 
+
 }
-	
+
 main()
