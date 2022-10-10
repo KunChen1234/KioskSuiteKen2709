@@ -9,6 +9,7 @@ import { EventEmitter } from "node:events";
 import { readTag } from "@roobuck-rnd/nfc_tools";
 import Scanmain from "./scanner";
 import { Client } from "socket.io/dist/client";
+import { isObject, stripVTControlCharacters } from "util";
 
 
 const internalEvents = new EventEmitter;
@@ -31,23 +32,20 @@ async function main() {
 	httpServer.listen(tcpPort, () => {
 		console.log(`Server is listening on port ${tcpPort}`);
 	});
-	const wsServer = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
-		cors: {
-			// origin: nodeConfig.get("corsOrigins"),
-			origin: "http://localhost:3000",
-			// origin: "https:*",
-			methods: ["GET", "POST"],
-			allowedHeaders: ["roobuck-client"],
-			credentials: true
+	const wsServer = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer,
+		{
+			cors: {
+				// origin: nodeConfig.get("corsOrigins"),
+				// origin: "http://localhost:3000",
+				// origin: "https:*",
+				methods: ["GET", "POST"],
+				allowedHeaders: ["roobuck-client"],
+				// credentials: true
+			}
 		}
-	});
-	wsServer.on("connect", async (client: WsClient) => {
-		console.log("a user connect");
+	);
 
-		// await Scanmain(client);
-
-
-	});
+	Scanmain(wsServer)
 
 
 }

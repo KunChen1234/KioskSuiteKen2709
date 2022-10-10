@@ -2,9 +2,9 @@ import { createContext, useContext } from "react";
 import io from "socket.io-client";
 
 const socket = io("ws://localhost:8080", {
-	withCredentials: true,
+	// withCredentials: true,
 	extraHeaders: {
-		"roobuck-client": "abcd"
+		"roobuck-client": "Kiosk"
 	}
 });
 

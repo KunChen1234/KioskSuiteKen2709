@@ -2,19 +2,16 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import './App.css';
 import Clock from './comment/Clock';
+import Footer from './comment/Footer';
 import useSocket from './context/socket';
-import Personalinfo from './personnalinfo';
 function App() {
   const socket = useSocket();
-  socket.emit("beginTest")
+  socket.connect();
+  socket.emit("beginTest");
   const [macAddress, setMacAddress] = useState<string>();
   const [SN, setSN] = useState<string>();
   const [State, setState] = useState<Element>();
-  function onclick() {
-    console.log("a")
 
-
-  }
   useEffect(() => {
     socket.on("MAC", (msg) => {
       if (msg && typeof msg === "string") {
@@ -46,17 +43,18 @@ function App() {
         </div>
       </div>
       <div className="bg-black row-span-4 items-center text-center">
-        {/* <div className="p-6 max-w-sm mx-auto bg-white rounded-xl shadow-lg  items-center space-x-4"> */}
-        <Personalinfo></Personalinfo>
-        <button onClick={onclick}>cc</button>
-        {/* <table>
+        <div className="p-6 max-w-sm mx-auto bg-white rounded-xl shadow-lg  items-center space-x-4">
+        <table>
             <tbody>
               <tr><td>MAC:</td><td>{macAddress}</td></tr>
               <tr><td>SN:</td><td>{SN}</td></tr>
             </tbody>
-          </table> */}
+          </table>
       </div>
-      <div className="bg-roobuck-blue">bottom</div>
+      </div>
+      <div className='bg-black row-span-1' >
+        <Footer version={''}></Footer>
+      </div>
     </div>);
 }
 export default App;

@@ -12,6 +12,7 @@ import SearchingBySN from "../database/search";
 import { PrismaClient } from "@prisma/client";
 import { Result } from "../database/search"
 import { Client } from "socket.io/dist/client";
+import { isObject } from "node:util";
 interface RoobuckTag {
     MAC: string;
     SN: string;
@@ -84,16 +85,18 @@ async function CheckdataSuccess(data: Buffer) {
 }
 // client: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
 
-async function Scanmain(client: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
-    let personalInfo:Result[]=[];
+async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
+
+    let personalInfo: Result[] = [];
     const { result, path } = await FindCOM();
     if (result) {
         let port = await OpenPort(path);
         let runLoop = true
-        client.on("disconnect",()=>
-        {
-            console.log("disconncet")
-            port.close();
+        Server.on("connect", (client) => {
+            client.on("disconnect", () => {
+                console.log("disconncet")
+                port.close();
+            })
         })
         // client.emit("aa",port)
         const dataParser = port.pipe(new DelimiterParser({ delimiter: "\r", includeDelimiter: false }));
@@ -108,7 +111,7 @@ async function Scanmain(client: Socket<ClientToServerEvents, ServerToClientEvent
             }
             else if (data && Buffer.isBuffer(data) && data.subarray(0, 4).toString() === "0001" && data.length > 4) {
                 const tagData = await readTag(port, dataParser);
-                
+
                 // client.emit("tagID",data.toString());
                 console.log("tagData: " + tagData);
                 // const tagID = data.subarray(4, data.length).toString(); not used
@@ -133,21 +136,20 @@ async function Scanmain(client: Socket<ClientToServerEvents, ServerToClientEvent
                         await prisma.$disconnect()
                         process.exit(1)
                     }
+                    Server.emit("MAC", obj.MAC)
+                    Server.emit("SN", obj.SN)
                     if (dataFromdatabase) {
                         personalInfo.push(dataFromdatabase);
-                        client.emit("PersonalInfo", personalInfo);
+                        Server.emit("PersonalInfo", personalInfo);
                     }
                     else {
                         console.log("no match info")
                     }
-
-                    client.emit("MAC", obj.MAC)
-                    client.emit("SN", obj.SN)
                 }
             }
             else {
                 console.log("scan failed");
-                console.log("data: "+data+"isBuffer: "+Buffer.isBuffer(data)+"data.subarray: "+data.subarray(0, 4).toString()+"length: "+data.length);
+                console.log("data: " + data + "isBuffer: " + Buffer.isBuffer(data) + "data.subarray: " + data.subarray(0, 4).toString() + "length: " + data.length);
             }
             dataParser.removeAllListeners();
         }
