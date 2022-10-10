@@ -12,7 +12,7 @@ import SearchingBySN from "../database/search";
 import { PrismaClient } from "@prisma/client";
 import { Result } from "../database/search"
 import { Client } from "socket.io/dist/client";
-import { isObject } from "node:util";
+import { exit } from "node:process";
 interface RoobuckTag {
     MAC: string;
     SN: string;
@@ -36,12 +36,13 @@ async function FindCOM(): Promise<{ result: boolean, path: string }> {
         const port = ports.filter(port => {
             return port.vendorId == "09D8"
         })
-        const COM = port[0].path
-
-        if (port) {
+        if (port.length > 0) {
+            // console.log("find")
+            const COM = port[0].path
             resolve({ result: true, path: COM })
         }
         else {
+            // console.log("not find")
             resolve({ result: false, path: "null" })
         }
     });
@@ -84,7 +85,7 @@ async function CheckdataSuccess(data: Buffer) {
     }
 }
 // client: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
-
+// Server: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
 async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
 
     let personalInfo: Result[] = [];
@@ -126,7 +127,6 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                     console.log("SN: " + obj.SN);
                     const prisma = new PrismaClient()
                     const dataFromdatabase: Result | null = await SearchingBySN()
-
                     try {
                         await prisma.$disconnect();
                         console.log("data closed")
@@ -155,7 +155,8 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
         }
     }
     else {
-        console.log("Connect to scanner please")
+        console.log("Connect to scanner please");
+        exit(1);
     }
 
 }
