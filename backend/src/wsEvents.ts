@@ -1,4 +1,6 @@
 import {Result} from "../database/search"
+import{RoobuckTag} from "./scanner"
+import{SignIn} from "./scanner"
 interface ServerToClientEvents {
 	noArg: () => void;
 	sendId: (clientId: string) => void;
@@ -14,8 +16,8 @@ interface ServerToClientEvents {
 	tagID:(tagID:string)=>void;
 	MAC:(MAC:string)=>void;
 	SN:(SN:string)=>void;
-	PersonalInfo:(Info:Result[])=>void;
-
+	PersonalInfo:(Info:SignIn[])=>void;
+	LampInfo:(Info:RoobuckTag)=>void;
 	// section: "maintanence",
 
 }

@@ -16,7 +16,17 @@ async function CreateData() {
     })
 
 }
-CreateData()
+async function Update() {
+    const user = await prisma.user.update({
+        where:{
+            serialnumber:'C0409W-4C7525BC7020',
+        },
+        data:{
+            photo:'persontest.jpg'
+        },
+    })
+}
+Update()
     .then(async () => {
         await prisma.$disconnect()
     })

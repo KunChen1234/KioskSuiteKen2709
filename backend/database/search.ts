@@ -9,10 +9,10 @@ interface Result {
     photo: string | null|undefined,
     job: string | null
 }
-async function SearchingBySN(): Promise<Result | null> {
+async function SearchingBySN(SN:string): Promise<Result | null> {
     const user = await prisma.user.findUnique({
         where: {
-            serialnumber: 'C0409W-4C7525BC7020',
+            serialnumber: SN,
         },
     })
     const data: Result | null = user;

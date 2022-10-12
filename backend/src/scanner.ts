@@ -4,18 +4,24 @@
 */
 import { SerialPort } from "serialport";
 import { DelimiterParser } from '@serialport/parser-delimiter'
-import { EventEmitter } from "node:events";
 import { readTag } from "@roobuck-rnd/nfc_tools";
 import { Server, Socket } from "socket.io";
 import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./wsEvents";
 import SearchingBySN from "../database/search";
 import { PrismaClient } from "@prisma/client";
 import { Result } from "../database/search"
-import { Client } from "socket.io/dist/client";
 import { exit } from "node:process";
 interface RoobuckTag {
     MAC: string;
     SN: string;
+}
+interface SignIn {
+    SN: string | null,
+    section: string | null,
+    name: string | null,
+    photo: string | null | undefined,
+    job: string | null,
+    time: string
 }
 
 function isRoobuckTag(obj: unknown): obj is RoobuckTag {
@@ -88,17 +94,18 @@ async function CheckdataSuccess(data: Buffer) {
 // Server: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
 async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
 
-    let personalInfo: Result[] = [];
+    let personalInfo: SignIn[] = [];
     const { result, path } = await FindCOM();
     if (result) {
         let port = await OpenPort(path);
-        let runLoop = true
-        Server.on("connect", (client) => {
-            client.on("disconnect", () => {
-                console.log("disconncet")
-                port.close();
-            })
-        })
+        let runLoop = true;
+        let times = 0; // times%2==0 ID info, times%2==1 lamp info 
+        // Server.on("connect", (client) => {
+        //     client.on("disconnect", () => {
+        //         console.log("disconncet")
+        //         port.close();
+        //     })
+        // })
         // client.emit("aa",port)
         const dataParser = port.pipe(new DelimiterParser({ delimiter: "\r", includeDelimiter: false }));
         while (runLoop) {
@@ -126,25 +133,57 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                     console.log("MAC: " + obj.MAC);
                     console.log("SN: " + obj.SN);
                     const prisma = new PrismaClient()
-                    const dataFromdatabase: Result | null = await SearchingBySN()
-                    try {
-                        await prisma.$disconnect();
-                        console.log("data closed")
+                    if (times % 2 == 0) {
+                        const dataFromdatabase: Result | null = await SearchingBySN(obj.SN)
+                        console.log("photo: " + dataFromdatabase?.photo)
+                        try {
+                            await prisma.$disconnect();
+                            console.log("data closed")
+                        }
+                        catch (e) {
+                            console.error(e)
+                            await prisma.$disconnect()
+                            process.exit(1)
+                        }
+                        if (dataFromdatabase) {
+                            // SN: string,
+                            // section:string,
+                            // name:string,
+                            // photo:string,
+                            // job:string,
+                            // time:Date
+                            const date=new Date()
+                            const newp = {
+                                SN: dataFromdatabase.serialnumber,
+                                section: dataFromdatabase.section,
+                                name: dataFromdatabase.name,
+                                photo: dataFromdatabase.photo,
+                                job: dataFromdatabase.job,
+                                time: Intl.DateTimeFormat("en-UK", {year: "numeric", month: "2-digit",day: "2-digit", hour: "2-digit", minute: "2-digit"}).format(date)
+                            }
+                            console.log
+                            personalInfo.push(newp);
+                            times++;
+                            if (times > 1) {
+                                times = 0;
+                            }
+                        }
+                        else {
+                            console.log("no match info");
+                        }
+                    } else {
+                        Server.emit("PersonalInfo", personalInfo);
+                        Server.emit("LampInfo", obj);
+                        times++;
+                        if (times > 1) {
+                            times = 0;
+                        }
                     }
-                    catch (e) {
-                        console.error(e)
-                        await prisma.$disconnect()
-                        process.exit(1)
-                    }
+
+
                     Server.emit("MAC", obj.MAC)
                     Server.emit("SN", obj.SN)
-                    if (dataFromdatabase) {
-                        personalInfo.push(dataFromdatabase);
-                        Server.emit("PersonalInfo", personalInfo);
-                    }
-                    else {
-                        console.log("no match info")
-                    }
+
                 }
             }
             else {
@@ -164,3 +203,4 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
 //SN: C0409W-4C7525BC7020
 // Scanmain()
 export default Scanmain
+export { RoobuckTag, SignIn }
