@@ -18,6 +18,8 @@ interface ServerToClientEvents {
 	SN:(SN:string)=>void;
 	PersonalInfo:(Info:SignIn[])=>void;
 	LampInfo:(Info:RoobuckTag)=>void;
+	DayShift:(Info:SignIn[])=>void;
+	NightShift:(Info:SignIn[])=>void;
 	// section: "maintanence",
 
 }
@@ -28,6 +30,8 @@ interface ClientToServerEvents {
 	beginTest: () => void;
 	endTest: () => void;
 	userInputs: (userInputs: unknown) => void;
+	getDayShift:()=>void;
+	getNightShift:()=>void;
 }
 interface InterServerEvents {
 	ping: () => void;

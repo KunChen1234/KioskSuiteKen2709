@@ -11,6 +11,7 @@ import SearchingBySN from "../database/search";
 import { PrismaClient } from "@prisma/client";
 import { Result } from "../database/search"
 import { exit } from "node:process";
+import { Sign } from "node:crypto";
 interface RoobuckTag {
     MAC: string;
     SN: string;
@@ -21,6 +22,7 @@ interface SignIn {
     name: string | null,
     photo: string | null | undefined,
     job: string | null,
+    date: string,
     time: string
 }
 
@@ -94,7 +96,8 @@ async function CheckdataSuccess(data: Buffer) {
 // Server: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
 async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
 
-    let personalInfo: SignIn[] = [];
+    let dayshift: SignIn[] = [];
+    let nightshift: SignIn[] = [];
     const { result, path } = await FindCOM();
     if (result) {
         let port = await OpenPort(path);
@@ -109,13 +112,25 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
         // client.emit("aa",port)
         const dataParser = port.pipe(new DelimiterParser({ delimiter: "\r", includeDelimiter: false }));
         while (runLoop) {
+            // Server.on("connect", (client) => {
+            //     client.once("getDayShift", () => {
+            //         if (dayshift) {
+            //             Server.emit("DayShift", dayshift);
+            //         }
+            //     })
+            //     client.on("getNightShift", () => {
+            //         if (nightshift) {
+            //             Server.emit("NightShift", dayshift);
+            //         }
+            //     })
+            // })
             const data = await command(port, '050010\r', dataParser);
             // const data1 = await command(port, "20020420\r", dataParser); 
             // console.log("data1: "+data1.toString());
             // const converted = Buffer.from(data1.toString(), "hex");
             // console.log("conveted: "+converted.toString())
             if (data.toString() === "0000") {
-                console.log("no card");
+                // console.log("no card");
             }
             else if (data && Buffer.isBuffer(data) && data.subarray(0, 4).toString() === "0001" && data.length > 4) {
                 const tagData = await readTag(port, dataParser);
@@ -135,7 +150,7 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                     const prisma = new PrismaClient()
                     if (times % 2 == 0) {
                         const dataFromdatabase: Result | null = await SearchingBySN(obj.SN)
-                        console.log("photo: " + dataFromdatabase?.photo)
+                        // console.log("photo: " + dataFromdatabase?.photo)
                         try {
                             await prisma.$disconnect();
                             console.log("data closed")
@@ -152,17 +167,22 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                             // photo:string,
                             // job:string,
                             // time:Date
-                            const date=new Date()
-                            const newp = {
+                            const date = new Date()
+                            const newpeople = {
                                 SN: dataFromdatabase.serialnumber,
                                 section: dataFromdatabase.section,
                                 name: dataFromdatabase.name,
                                 photo: dataFromdatabase.photo,
                                 job: dataFromdatabase.job,
-                                time: Intl.DateTimeFormat("en-UK", {year: "numeric", month: "2-digit",day: "2-digit", hour: "2-digit", minute: "2-digit"}).format(date)
+                                date: Intl.DateTimeFormat("en-UK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(date),
+                                time: Intl.DateTimeFormat("en-UK", { hour: "2-digit", minute: "2-digit" }).format(date),
                             }
-                            console.log
-                            personalInfo.push(newp);
+                            if (newpeople.time >= "04:00:00" && newpeople.time <= "16:00:00") {
+                                dayshift.push(newpeople);
+                            }
+                            else {
+                                nightshift.push(newpeople);
+                            }
                             times++;
                             if (times > 1) {
                                 times = 0;
@@ -172,18 +192,17 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                             console.log("no match info");
                         }
                     } else {
-                        Server.emit("PersonalInfo", personalInfo);
+                        console.log("start to send data");
+                        Server.emit("DayShift", dayshift);
+                        Server.emit("NightShift", nightshift);
                         Server.emit("LampInfo", obj);
                         times++;
                         if (times > 1) {
                             times = 0;
                         }
                     }
-
-
                     Server.emit("MAC", obj.MAC)
                     Server.emit("SN", obj.SN)
-
                 }
             }
             else {
