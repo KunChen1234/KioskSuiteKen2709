@@ -11,32 +11,9 @@ import SearchingBySN from "../database/search";
 import { PrismaClient } from "@prisma/client";
 import { Result } from "../database/search"
 import { exit } from "node:process";
-import { Sign } from "node:crypto";
-interface RoobuckTag {
-    MAC: string;
-    SN: string;
-}
-interface SignIn {
-    SN: string | null,
-    section: string | null,
-    name: string | null,
-    photo: string | null | undefined,
-    job: string | null,
-    date: string,
-    time: string
-}
+import { PeopleInfoTag } from "./typeguards/PeopleInfoTag";
 
-function isRoobuckTag(obj: unknown): obj is RoobuckTag {
-    if (obj && typeof obj === "object") {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const parse = obj as Record<string, any>;
-        return parse && typeof parse === "object" && !Array.isArray(parse) &&
-            parse.MAC && typeof parse.MAC === "string" && parse.SN &&
-            typeof parse.SN === "string";
-    } else {
-        return false;
-    }
-}
+
 async function FindCOM(): Promise<{ result: boolean, path: string }> {
 
     return new Promise(async (resolve) => {
@@ -78,26 +55,12 @@ async function command(port: SerialPort, command: String, dataParser: DelimiterP
         })
     })
 }
-async function CheckdataSuccess(data: Buffer) {
-    if (data.subarray(0, 4).toString() === "0000") {
-        console.log("No card");
-    }
-    else if (data && Buffer.isBuffer(data) && data.subarray(0, 4).toString() === "0001" && data.length > 4) {
-        // asyncRead(data);
-        console.log(data);
-        console.log(data.toString());
-        console.log("Get card infor");
-    }
-    else {
-
-    }
-}
 // client: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
 // Server: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
 async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
 
-    let dayshift: SignIn[] = [];
-    let nightshift: SignIn[] = [];
+    let dayshift: PeopleInfoTag[] = [];
+    let nightshift: PeopleInfoTag[] = [];
     const { result, path } = await FindCOM();
     if (result) {
         let port = await OpenPort(path);
@@ -111,21 +74,14 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
         // })
         // client.emit("aa",port)
         const dataParser = port.pipe(new DelimiterParser({ delimiter: "\r", includeDelimiter: false }));
+        //start NFC scaning
+
+        let getPeopleInfo = false;
+        let getLampInfo = false;
         while (runLoop) {
-            // Server.on("connect", (client) => {
-            //     client.once("getDayShift", () => {
-            //         if (dayshift) {
-            //             Server.emit("DayShift", dayshift);
-            //         }
-            //     })
-            //     client.on("getNightShift", () => {
-            //         if (nightshift) {
-            //             Server.emit("NightShift", dayshift);
-            //         }
-            //     })
-            // })
             const data = await command(port, '050010\r', dataParser);
             // const data1 = await command(port, "20020420\r", dataParser); 
+            // console.log("data: "+data.toString());
             // console.log("data1: "+data1.toString());
             // const converted = Buffer.from(data1.toString(), "hex");
             // console.log("conveted: "+converted.toString())
@@ -134,22 +90,28 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
             }
             else if (data && Buffer.isBuffer(data) && data.subarray(0, 4).toString() === "0001" && data.length > 4) {
                 const tagData = await readTag(port, dataParser);
-
+                // console.log("tagData: "+tagData?.toString());
                 // client.emit("tagID",data.toString());
                 console.log("tagData: " + tagData);
-                // const tagID = data.subarray(4, data.length).toString(); not used
                 if (tagData) {
                     const start = tagData.indexOf("\{")
                     const end = tagData.indexOf("\}")
                     const info = tagData.substring(start, end + 1)
                     console.log("info:" + info)
                     const obj = JSON.parse(info)
-                    console.log("type:" + typeof obj)
-                    console.log("MAC: " + obj.MAC);
-                    console.log("SN: " + obj.SN);
-                    const prisma = new PrismaClient()
-                    if (times % 2 == 0) {
-                        const dataFromdatabase: Result | null = await SearchingBySN(obj.SN)
+                    // console.log("type:" + typeof obj)
+                    // console.log("MAC: " + obj.MAC);
+                    // console.log("SN: " + obj.SN);
+                    if (obj.MAC && obj.SN) {
+                        console.log("Lamp");
+                        Server.emit("LampInfo", obj);
+                        getLampInfo = true;
+                    }
+                    else if (obj.ID) {
+                        console.log("People");
+                        const prisma = new PrismaClient();
+                        const dataFromdatabase: Result | null = await SearchingBySN(obj.ID);
+                        Server.emit("PeopleID", obj.ID);
                         // console.log("photo: " + dataFromdatabase?.photo)
                         try {
                             await prisma.$disconnect();
@@ -161,15 +123,9 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                             process.exit(1)
                         }
                         if (dataFromdatabase) {
-                            // SN: string,
-                            // section:string,
-                            // name:string,
-                            // photo:string,
-                            // job:string,
-                            // time:Date
                             const date = new Date()
                             const newpeople = {
-                                SN: dataFromdatabase.serialnumber,
+                                ID: dataFromdatabase.serialnumber,
                                 section: dataFromdatabase.section,
                                 name: dataFromdatabase.name,
                                 photo: dataFromdatabase.photo,
@@ -183,26 +139,25 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                             else {
                                 nightshift.push(newpeople);
                             }
-                            times++;
-                            if (times > 1) {
-                                times = 0;
-                            }
+                            getPeopleInfo = true;
                         }
                         else {
                             console.log("no match info");
                         }
-                    } else {
+                    }
+                    else {
+                        console.log("Unrecognized");
+                    }
+                    if (getLampInfo && getPeopleInfo) {
                         console.log("start to send data");
                         Server.emit("DayShift", dayshift);
                         Server.emit("NightShift", nightshift);
-                        Server.emit("LampInfo", obj);
-                        times++;
-                        if (times > 1) {
-                            times = 0;
-                        }
+                        getLampInfo = false;
+                        getPeopleInfo = false;
+                        // Server.emit("ReadyForNext", true);
                     }
-                    Server.emit("MAC", obj.MAC)
-                    Server.emit("SN", obj.SN)
+
+
                 }
             }
             else {
@@ -222,4 +177,3 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
 //SN: C0409W-4C7525BC7020
 // Scanmain()
 export default Scanmain
-export { RoobuckTag, SignIn }

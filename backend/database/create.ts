@@ -3,14 +3,13 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function CreateData() {
-    const user = await prisma.user.create({
+    await prisma.user.create({
         data: {
-            id: 1,
-            serialnumber: 'C0409W-4C7525BC7020',
+            id: 2,
+            serialnumber: '0000001',
             section: "maintanence",
-            name: 'ken',
+            name: 'test1',
             photo: './image/persontest.jpg',
-            
             job: 'job1'
         },
     })
@@ -18,15 +17,15 @@ async function CreateData() {
 }
 async function Update() {
     const user = await prisma.user.update({
-        where:{
-            serialnumber:'C0409W-4C7525BC7020',
+        where: {
+            serialnumber: 'C0409W-4C7525BC7020',
         },
-        data:{
-            photo:'persontest.jpg'
+        data: {
+            photo: 'persontest.jpg'
         },
     })
 }
-Update()
+CreateData()
     .then(async () => {
         await prisma.$disconnect()
     })
@@ -35,4 +34,5 @@ Update()
         await prisma.$disconnect()
         process.exit(1)
     })
+
 //export default CreateData

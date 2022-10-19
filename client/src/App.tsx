@@ -4,29 +4,33 @@ import './App.css';
 import Clock from './comment/Clock';
 import Footer from './comment/Footer';
 import useSocket from './context/socket';
+interface RoobuckTag {
+  MAC: string;
+  SN: string;
+}
 function App() {
   const socket = useSocket();
   socket.connect();
   socket.emit("beginTest");
-  const [macAddress, setMacAddress] = useState<string>();
-  const [SN, setSN] = useState<string>();
-  const [State, setState] = useState<Element>();
+  const [LampInfo, setLampInfo] = useState<RoobuckTag>();
+  const [ID, setID] = useState<string>();
 
   useEffect(() => {
-    socket.on("MAC", (msg) => {
-      if (msg && typeof msg === "string") {
-        const mac = msg
-        setMacAddress(mac);
-      } else {
-        console.error("Received invalid MAC Address");
+    socket.on("LampInfo", (msg) => {
+      setLampInfo(msg);
+    });
+    socket.on("PeopleID", (msg) => {
+      setID(msg);
+    });
+    socket.on("ReadyForNext", (msg) => {
+      if (msg) {
+        setLampInfo(undefined);
+        setID(undefined);
       }
-    });
-    socket.on('SN', (msg) => {
-      setSN(msg)
-    });
+    })
     return function socketCleanup() {
-      socket.removeAllListeners("MAC");
-      socket.removeAllListeners("SN")
+      socket.removeAllListeners("LampInfo");
+      socket.removeAllListeners("PeopleID");
     };
 
   });
@@ -44,13 +48,14 @@ function App() {
       </div>
       <div className="bg-black row-span-4 items-center text-center">
         <div className="p-6 max-w-sm mx-auto bg-white rounded-xl shadow-lg  items-center space-x-4">
-        <table>
+          <table>
             <tbody>
-              <tr><td>MAC:</td><td>{macAddress}</td></tr>
-              <tr><td>SN:</td><td>{SN}</td></tr>
+              <tr><td>ID:</td><td>{ID}</td></tr>
+              <tr><td>MAC:</td><td>{LampInfo?.MAC}</td></tr>
+              <tr><td>SN:</td><td>{LampInfo?.SN}</td></tr>
             </tbody>
           </table>
-      </div>
+        </div>
       </div>
       <div className='bg-black row-span-1' >
         <Footer version={''}></Footer>

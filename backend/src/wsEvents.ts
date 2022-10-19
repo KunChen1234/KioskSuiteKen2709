@@ -1,25 +1,25 @@
-import {Result} from "../database/search"
-import{RoobuckTag} from "./scanner"
-import{SignIn} from "./scanner"
+import { RoobuckTag } from "./typeguards/RoobuckTag"
+import { PeopleInfoTag } from "./typeguards/PeopleInfoTag"
 interface ServerToClientEvents {
 	noArg: () => void;
 	sendId: (clientId: string) => void;
 	testError: (errorMsg: string) => void;
 	testSerialNumber: (serialNumber: string) => void;
-	deviceProperties: (deviceProperties: {dsrc: boolean, uwb: boolean}) => void;
-	mqttResults: (mqttResults: {wifiOk: boolean, fuelOk: null | boolean, infoOk: null | boolean, dsrcMac: null | string, uwbOk: null | boolean}) => void;
-	peripheralResults: (peripheralResults: {dsrcOk: boolean | null}) => void;
+	deviceProperties: (deviceProperties: { dsrc: boolean, uwb: boolean }) => void;
+	mqttResults: (mqttResults: { wifiOk: boolean, fuelOk: null | boolean, infoOk: null | boolean, dsrcMac: null | string, uwbOk: null | boolean }) => void;
+	peripheralResults: (peripheralResults: { dsrcOk: boolean | null }) => void;
 	testStatus: (newStatus: string) => void;
 	endTest: (testResult: boolean) => void;
 
 
-	tagID:(tagID:string)=>void;
-	MAC:(MAC:string)=>void;
-	SN:(SN:string)=>void;
-	PersonalInfo:(Info:SignIn[])=>void;
-	LampInfo:(Info:RoobuckTag)=>void;
-	DayShift:(Info:SignIn[])=>void;
-	NightShift:(Info:SignIn[])=>void;
+	tagID: (tagID: string) => void;
+
+	PeopleID: (ID: string) => void;
+	PersonalInfo: (Info: PeopleInfoTag[]) => void;
+	LampInfo: (Info: RoobuckTag) => void;
+	DayShift: (DayShift: PeopleInfoTag[]) => void;
+	NightShift: (NightShift: PeopleInfoTag[]) => void;
+	ReadyForNext: (ready: boolean) => void;
 	// section: "maintanence",
 
 }
@@ -30,8 +30,8 @@ interface ClientToServerEvents {
 	beginTest: () => void;
 	endTest: () => void;
 	userInputs: (userInputs: unknown) => void;
-	getDayShift:()=>void;
-	getNightShift:()=>void;
+	getDayShift: () => void;
+	getNightShift: () => void;
 }
 interface InterServerEvents {
 	ping: () => void;
@@ -41,4 +41,4 @@ interface SocketData {
 	timeOfConnection: Date;
 }
 
-export {ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData}
+export { ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData }
