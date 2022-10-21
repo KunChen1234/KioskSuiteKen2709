@@ -79,23 +79,25 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
 
         let getPeopleInfo = false;
         let getLampInfo = false;
+        let newpeople: PeopleInfoTag = {
+            ID: undefined,
+            section: undefined,
+            name: undefined,
+            photo: undefined,
+            job: undefined,
+            date: undefined,
+            time: undefined,
+            isDayShift: undefined
+        };
+        let newLamp: LampInfo = {
+            MAC: undefined,
+            SN: undefined,
+            Bssid: undefined,
+            ChargingStatus: undefined
+        };
         while (runLoop) {
-            let newpeople: PeopleInfoTag = {
-                ID: undefined,
-                section: undefined,
-                name: undefined,
-                photo: undefined,
-                job: undefined,
-                date: undefined,
-                time: undefined,
-                isDayShift: undefined
-            };
-            let newLamp: LampInfo = {
-                MAC: undefined,
-                SN: undefined,
-                Bssid: undefined,
-                ChargingStatus: undefined
-            };
+
+
             const data = await command(port, '050010\r', dataParser);
             // const data1 = await command(port, "20020420\r", dataParser); 
             // console.log("data: "+data.toString());
@@ -120,6 +122,12 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                     // console.log("MAC: " + obj.MAC);
                     // console.log("SN: " + obj.SN);
                     if (obj.MAC && obj.SN) {
+                        newLamp = {
+                            MAC: undefined,
+                            SN: undefined,
+                            Bssid: undefined,
+                            ChargingStatus: undefined
+                        };
                         console.log("Lamp");
                         newLamp = obj;
                         Server.emit("LampInfo", obj);
@@ -129,6 +137,16 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                     }
                     else if (obj.ID) {
                         console.log("People");
+                        newpeople = {
+                            ID: undefined,
+                            section: undefined,
+                            name: undefined,
+                            photo: undefined,
+                            job: undefined,
+                            date: undefined,
+                            time: undefined,
+                            isDayShift: undefined
+                        };
                         const prisma = new PrismaClient();
                         const dataFromdatabase: Result | null = await SearchingBySN(obj.ID);
                         Server.emit("PeopleID", obj.ID);
@@ -154,6 +172,14 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                                 time: Intl.DateTimeFormat("en-UK", { hour: "2-digit", minute: "2-digit" }).format(date),
                                 isDayShift: undefined
                             }
+                            if (newpeople.time) {
+                                if (newpeople.time >= "04:00:00" && newpeople.time <= "16:00:00") {
+                                    newpeople.isDayShift = true;
+                                }
+                                else {
+                                    newpeople.isDayShift = false;
+                                }
+                            }
                             getPeopleInfo = true;
                         }
                         else {
@@ -167,28 +193,16 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                         console.log("start to send data");
                         let DayShift: TagBoardInfo[] = [];
                         let NightShift: TagBoardInfo[] = [];
-                        console.log("isDayshift Before select:"+newpeople.isDayShift)
+                        console.log("people Shift: " + newpeople.isDayShift);
+                        console.log("LampSN:" + newLamp.SN);
                         AllShift.push({ person: newpeople, lamp: newLamp });
                         AllShift.forEach(element => {
-                            console.log("time before send:"+newpeople.time)
-                            // if (element.time >= "04:00:00" && newpeople.time <= "16:00:00") {
-                            //     console.log("day");
-                            //     newpeople.isDayShift = true;
-                            // }
-                            // else {
-                            //     console.log("night");
-                            //     newpeople.isDayShift = false;
-                            // }
-                            console.log("isdayShift:" + element.person.isDayShift)
                             if (element.person.isDayShift) {
                                 DayShift.push(element);
                             } else {
                                 NightShift.push(element);
                             }
                         });
-                        console.log(AllShift.length)
-                        console.log("DayShiftLength" + DayShift.length)
-                        console.log("NightShiftLength" + NightShift.length)
                         Server.emit("NightShift", NightShift);
                         Server.emit("DayShift", DayShift);
                         getLampInfo = false;
