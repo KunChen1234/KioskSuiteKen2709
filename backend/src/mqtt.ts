@@ -1,68 +1,53 @@
 import { connect, IClientOptions } from "mqtt";
 import nodeConfig from "config";
-import setLogger from "./logger";
+// import setLogger from "./logger";
 import { isStatusMessage } from "./typeguards/isStatusMessage";
 import { EventEmitter } from 'node:events';
 import { isInfoMessage } from "./typeguards/isInfoMessage";
 import { isDsrcStatus } from './typeguards/isDsrcStatus';
-import { sleep } from "@roobuck-rnd/nfc_tools";
-
 /**
  * 
  * @param sn string - Serial number of test unit
- * @returns {[{wifiOk, fuelOk, infoOk, dsrcI2cOk, uwbOk}, {dsrc, uwb}]} Object containing booleans or nulls for test results and an object containing device props
+ * @returns {[chargingFormat,bssid]} Object containing booleans or nulls for test results and an object containing device props
  */
-async function mqtt(sn: string): Promise<[{
-    wifiOk: boolean
-    fuelOk: null | boolean,
-    infoOk: null | boolean,
-    dsrcMac: null | string,
-    uwbOk: null | boolean
-}, {
-    dsrc: boolean,
-    uwb: boolean
-}]> {
+async function mqtt(sn: string): Promise<
+    {
+        bssid: string | null;
+        chargingStatus: boolean
+    }> {
     return new Promise((resolve) => {
-        const logger = setLogger("mqtt.js");
+        // const logger = setLogger("mqtt.js");
+        let result: {
+            bssid: string | null;
+            chargingStatus: boolean
+        } = {
+            bssid: null,
+            chargingStatus: false
+        }
         const mqttOptions: IClientOptions = {
-            clientId: `roobuck_test_suite`,
+            clientId: `roobuck_test_Kiosk`,
             username: nodeConfig.get("mqttUser"),
             password: nodeConfig.get("mqttPass")
         }
-
-        const mqttBroker: string = nodeConfig.get("mqttBroker");
-        logger.debug(`Attempting MQTT Connection to broker ${mqttBroker} with username ${mqttOptions.username}`)
+        console.log(mqttOptions);
+        const mqttBroker = "mqtt://192.168.1.105";
+        // console.log(`Attempting MQTT Connection to broker ${mqttBroker} with username ${mqttOptions.username}`)
+        // // logger.debug(`Attempting MQTT Connection to broker ${mqttBroker} with username ${mqttOptions.username}`)
         const mqttClient = connect(mqttBroker, mqttOptions);
         mqttClient.on("connect", (connack) => {
+            console.log("connected: " + JSON.stringify(connack))
             // logger.debug("Connected");
+            console.log("connected")
             mqttClient.subscribe([
-                `${sn}/device/info`,
                 `${sn}/device/status`,
-                `${sn}/dsrc/status`,
-                `${sn}/uwb/scan`,
                 `production/testing/${sn}`
             ]);
             mqttClient.publish(`production/testing/${sn}`, sn)
         });
-        const results: {
-            wifiOk: boolean
-            fuelOk: null | boolean,
-            infoOk: null | boolean,
-            dsrcMac: null | string,
-            uwbOk: null | boolean
-        } = {
-            wifiOk: false,
-            fuelOk: null,
-            infoOk: null,
-            dsrcMac: null,
-            uwbOk: null
-        }
-        const tagProps = {
-            dsrc: false,
-            uwb: false,
-        }
+
         const endTest = setTimeout(() => {
-            logger.error("Timeout Reached. Test Incomplete")
+            // logger.error("Timeout Reached. Test Incomplete")
+            console.log("Timeout Reached. Test Incomplete");
             testManage.emit("endTest");
         }, 20 * 1000);
         const testManage = new EventEmitter();
@@ -70,128 +55,65 @@ async function mqtt(sn: string): Promise<[{
             clearTimeout(endTest);
             testManage.removeAllListeners("endTest");
             mqttClient.end();
-            logger.debug("Closing MQTT Connection");
-            logger.debug(JSON.stringify(results));
-            resolve([results, tagProps]);
+            // logger.debug("Closing MQTT Connection");
+            // logger.debug(JSON.stringify(results));
+            resolve(result);
         });
-        let [infoReceived, statusReceived, dsrcReceived, uwbReceived] = [false, false, false, false]
+        let statusReceived = false;
+        let fuelOk = false;
         mqttClient.on("message", (topic, payload, packet) => {
             if (topic === `production/testing/${sn}`) {
-                logger.debug(payload.toString());
+                // logger.debug(payload.toString());
+                console.log("tpic produnction: " + payload.toString())
             }
             // logger.debug(payload.toString());
-            switch (topic.split(/\/(.*)/s)[1]) {
-                //regex to split on first "/", switching on the 2nd element (element 1 should be SN)
-                case "device/info": {
-                    infoReceived = true;
-                    // Do Something
-                    // Confirm Serial Number, MAC Address, BLE MAC, etc are all correct
-                    try {
-                        const msg = JSON.parse(payload.toString());
-                        if (isInfoMessage(msg)) {
-                            // logger.debug(payload.toString());
+            // console.log(payload.toString());
+            if (topic.split(/\/(.*)/s)[1] === "device/status") {
+                statusReceived = true;
+                // Do Something
+                try {
+                    const msg = JSON.parse(payload.toString());
+                    if (isStatusMessage(msg)) {
+                        if (msg.fuelRaw > 0 && msg.fuelRaw < 5000) {
                             // Do Something
-                            // Confirm Serial Number, MAC Address, BLE MAC, etc are all correct?
-                            results.wifiOk = true;
-                            if ("dsrcEnabled" in msg && msg.dsrcEnabled !== undefined) {
-                                tagProps.dsrc = msg.dsrcEnabled;
+                            // Confirm Fuel Gauge is operating
+                            console.log("FUEL VALUE START");
+                            console.log(msg.fuelRaw.toString());
+                            console.log("FUEL VALUE END");
+                            fuelOk = true
+                            result.bssid = msg.bssid;
+                            if (msg.charging === 1) {
+                                result.chargingStatus = true;
                             }
-                            if ("uwbEnabled" in msg && msg.uwbEnabled !== undefined) {
-                                tagProps.uwb = msg.uwbEnabled;
-                            }
+                            console.log("DataFrom" + payload.toString());
                         } else {
-                            // Fail  Condition
-                            logger.debug(payload.toString());
+                            console.log("FUEL VALUE START");
+                            console.log(msg.fuelRaw.toString());
+                            console.log("FUEL VALUE END");
+                            fuelOk = false
                         }
-                    } catch (err) {
-                        if (err instanceof Error) {
-                            logger.error(err.message);
-                            logger.debug(payload.toString());
-                            logger.error("Malformed device/info message received");
-                        }
+                    } else {
+                        console.log("failed");
+                        // Fail Condition
                     }
-                    if (
-                        infoReceived && statusReceived &&
-                        (!tagProps.uwb || (tagProps.uwb && uwbReceived)) &&
-                        (!tagProps.dsrc || (tagProps.dsrc && dsrcReceived))
-                    ) {
-                        testManage.emit("endTest")
+                } catch (err) {
+                    if (err instanceof Error) {
+                        console.log("Error:" + err);
                     }
-                    break;
                 }
-                case "device/status": {
-                    statusReceived = true;
-                    // Do Something
-                    try {
-                        const msg = JSON.parse(payload.toString());
-                        if (isStatusMessage(msg)) {
-                            if (msg.fuelRaw > 0 && msg.fuelRaw < 5000) {
-                                // Do Something
-                                // Confirm Fuel Gauge is operating
-                                logger.debug("FUEL VALUE START");
-                                logger.debug(msg.fuelRaw.toString());
-                                logger.debug("FUEL VALUE END");
-                                results.fuelOk = true
-                            } else {
-                                logger.debug("FUEL VALUE START");
-                                logger.debug(msg.fuelRaw.toString());
-                                logger.debug("FUEL VALUE END");
-                                results.fuelOk = false
-                            }
-                        } else {
-                            logger.debug(payload.toString());
-                            logger.error("Malformed device/status message received")
-                            // Fail Condition
-                        }
-                    } catch (err) {
-                        if (err instanceof Error) {
-                            logger.error(err.message);
-                            logger.debug(payload.toString());
-                            logger.error("Malformed device/status message received")
-                        }
-                    }
-                    if (
-                        infoReceived && statusReceived &&
-                        (!tagProps.uwb || (tagProps.uwb && uwbReceived)) &&
-                        (!tagProps.dsrc || (tagProps.dsrc && dsrcReceived))
-                    ) {
-                        testManage.emit("endTest")
-                    }
-                    break;
-                }
-                case "dsrc/status": {
-                    dsrcReceived = true;
-                    logger.debug("DSRC MQTT RECIEVED");
-                    // Do Something
-                    // Topic name may change
-                    try {
-                        const msg = JSON.parse(payload.toString());
-                        logger.debug(payload.toString());
-                        if (isDsrcStatus(msg)) {
-                            results.dsrcMac = msg.mac;
-                        } else {
-                            logger.error("Malformed dsrc/status message received")
-                        }
-                    } catch (err) {
-                        logger.debug(payload.toString());
-                        logger.error("Malformed dsrc/status message received")
-                    }
-                    if (
-                        infoReceived && statusReceived &&
-                        (!tagProps.uwb || (tagProps.uwb && uwbReceived)) &&
-                        (!tagProps.dsrc || (tagProps.dsrc && dsrcReceived))
-                    ) {
-                        testManage.emit("endTest")
-                    }
-                    break;
-                }
-                default: {
-                    logger.debug("Message received but not used for test")
-                    break;
-                }
+                testManage.emit("endTest")
+            }
+            if (statusReceived) {
+                testManage.emit("endTest")
             }
         });
     })
 }
 
+// async function a() {
+//     const a = await mqtt("cr4c7525bc70d0");
+//     console.log("bssid:" + a.bssid);
+//     console.log("ChargingStatus:" + a.chargingStatus);
+// }
+// a()
 export default mqtt;

@@ -1,5 +1,6 @@
-import { RoobuckTag } from "./typeguards/RoobuckTag"
+import { LampInfo } from "./typeguards/LampInfo"
 import { PeopleInfoTag } from "./typeguards/PeopleInfoTag"
+import { TagBoardInfo } from "./typeguards/TagBoardInfo";
 interface ServerToClientEvents {
 	noArg: () => void;
 	sendId: (clientId: string) => void;
@@ -16,9 +17,9 @@ interface ServerToClientEvents {
 
 	PeopleID: (ID: string) => void;
 	PersonalInfo: (Info: PeopleInfoTag[]) => void;
-	LampInfo: (Info: RoobuckTag) => void;
-	DayShift: (DayShift: PeopleInfoTag[]) => void;
-	NightShift: (NightShift: PeopleInfoTag[]) => void;
+	LampInfo: (Info: LampInfo) => void;
+	DayShift: (DayShift: TagBoardInfo[]) => void;
+	NightShift: (NightShift: TagBoardInfo[]) => void;
 	ReadyForNext: (ready: boolean) => void;
 	// section: "maintanence",
 

@@ -11,7 +11,11 @@ import SearchingBySN from "../database/search";
 import { PrismaClient } from "@prisma/client";
 import { Result } from "../database/search"
 import { exit } from "node:process";
+import { TagBoardInfo } from "./typeguards/TagBoardInfo";
 import { PeopleInfoTag } from "./typeguards/PeopleInfoTag";
+import mqtt from "./mqtt";
+import { LampInfo } from "./typeguards/LampInfo";
+
 
 
 async function FindCOM(): Promise<{ result: boolean, path: string }> {
@@ -58,14 +62,11 @@ async function command(port: SerialPort, command: String, dataParser: DelimiterP
 // client: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
 // Server: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
 async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) {
-
-    let dayshift: PeopleInfoTag[] = [];
-    let nightshift: PeopleInfoTag[] = [];
+    let AllShift: TagBoardInfo[] = [];
     const { result, path } = await FindCOM();
     if (result) {
         let port = await OpenPort(path);
         let runLoop = true;
-        let times = 0; // times%2==0 ID info, times%2==1 lamp info 
         // Server.on("connect", (client) => {
         //     client.on("disconnect", () => {
         //         console.log("disconncet")
@@ -79,6 +80,22 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
         let getPeopleInfo = false;
         let getLampInfo = false;
         while (runLoop) {
+            let newpeople: PeopleInfoTag = {
+                ID: undefined,
+                section: undefined,
+                name: undefined,
+                photo: undefined,
+                job: undefined,
+                date: undefined,
+                time: undefined,
+                isDayShift: undefined
+            };
+            let newLamp: LampInfo = {
+                MAC: undefined,
+                SN: undefined,
+                Bssid: undefined,
+                ChargingStatus: undefined
+            };
             const data = await command(port, '050010\r', dataParser);
             // const data1 = await command(port, "20020420\r", dataParser); 
             // console.log("data: "+data.toString());
@@ -104,8 +121,11 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                     // console.log("SN: " + obj.SN);
                     if (obj.MAC && obj.SN) {
                         console.log("Lamp");
+                        newLamp = obj;
                         Server.emit("LampInfo", obj);
                         getLampInfo = true;
+                        console.log("newLamp MAC:" + newLamp.MAC);
+                        console.log("newLamp SN: " + newLamp.SN);
                     }
                     else if (obj.ID) {
                         console.log("People");
@@ -124,7 +144,7 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                         }
                         if (dataFromdatabase) {
                             const date = new Date()
-                            const newpeople = {
+                            newpeople = {
                                 ID: dataFromdatabase.serialnumber,
                                 section: dataFromdatabase.section,
                                 name: dataFromdatabase.name,
@@ -132,12 +152,7 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                                 job: dataFromdatabase.job,
                                 date: Intl.DateTimeFormat("en-UK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(date),
                                 time: Intl.DateTimeFormat("en-UK", { hour: "2-digit", minute: "2-digit" }).format(date),
-                            }
-                            if (newpeople.time >= "04:00:00" && newpeople.time <= "16:00:00") {
-                                dayshift.push(newpeople);
-                            }
-                            else {
-                                nightshift.push(newpeople);
+                                isDayShift: undefined
                             }
                             getPeopleInfo = true;
                         }
@@ -150,14 +165,36 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                     }
                     if (getLampInfo && getPeopleInfo) {
                         console.log("start to send data");
-                        Server.emit("DayShift", dayshift);
-                        Server.emit("NightShift", nightshift);
+                        let DayShift: TagBoardInfo[] = [];
+                        let NightShift: TagBoardInfo[] = [];
+                        console.log("isDayshift Before select:"+newpeople.isDayShift)
+                        AllShift.push({ person: newpeople, lamp: newLamp });
+                        AllShift.forEach(element => {
+                            console.log("time before send:"+newpeople.time)
+                            // if (element.time >= "04:00:00" && newpeople.time <= "16:00:00") {
+                            //     console.log("day");
+                            //     newpeople.isDayShift = true;
+                            // }
+                            // else {
+                            //     console.log("night");
+                            //     newpeople.isDayShift = false;
+                            // }
+                            console.log("isdayShift:" + element.person.isDayShift)
+                            if (element.person.isDayShift) {
+                                DayShift.push(element);
+                            } else {
+                                NightShift.push(element);
+                            }
+                        });
+                        console.log(AllShift.length)
+                        console.log("DayShiftLength" + DayShift.length)
+                        console.log("NightShiftLength" + NightShift.length)
+                        Server.emit("NightShift", NightShift);
+                        Server.emit("DayShift", DayShift);
                         getLampInfo = false;
                         getPeopleInfo = false;
                         // Server.emit("ReadyForNext", true);
                     }
-
-
                 }
             }
             else {
