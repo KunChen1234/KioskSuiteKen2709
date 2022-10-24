@@ -63,7 +63,7 @@ async function mqtt(sn: string): Promise<
         mqttClient.on("message", (topic, payload, packet) => {
             if (topic === `production/testing/${sn}`) {
                 // logger.debug(payload.toString());
-                console.log("tpic produnction: " + payload.toString())
+                // console.log("tpic produnction: " + payload.toString())
             }
             // logger.debug(payload.toString());
             // console.log(payload.toString());
@@ -82,6 +82,8 @@ async function mqtt(sn: string): Promise<
                             result.bssid = msg.bssid;
                             if (msg.charging === 1) {
                                 result.chargingStatus = true;
+                            } else if (msg.charging === 0) {
+                                result.chargingStatus = false;
                             }
                             // console.log("DataFrom" + payload.toString());
                         } else {

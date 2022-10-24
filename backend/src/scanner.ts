@@ -162,27 +162,32 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
                 let newNightShift: TagBoardInfo[] = [];
                 if (newAllShift.length > 0) {
                     for (let i = 0; i < AllShift.length; i++) {
-                        const SN = newAllShift[0].lamp.SN;
+                        const SN = newAllShift[i].lamp.SN;
                         if (SN) {
-                            const mqttData = await mqtt(SN)
-                            newAllShift[i].lamp.Bssid = mqttData.bssid;
-                            newAllShift[i].lamp.ChargingStatus = mqttData.chargingStatus;
-                            if (AllShift[i].person.isDayShift) {
-                                newDayShift.push(newAllShift[i]);
+                            if (newAllShift[i].lamp.ChargingStatus) {
+                                console.log("Charging");
                             }
                             else {
-                                newNightShift.push(newAllShift[i]);
-
+                                const mqttData = await mqtt(SN)
+                                newAllShift[i].lamp.Bssid = mqttData.bssid;
+                                newAllShift[i].lamp.ChargingStatus = mqttData.chargingStatus;
+                                if (newAllShift[i].person.isDayShift) {
+                                    newDayShift.push(newAllShift[i]);
+                                }
+                                else {
+                                    newNightShift.push(newAllShift[i]);
+                                }
                             }
+
                         }
                     }
                 }
                 AllShift = newAllShift;
                 Server.emit("UpdateDayShift", newDayShift);
                 Server.emit("UpdateNightShift", newNightShift);
-                console.log("NightShift Bssid:" + newNightShift[0].lamp.Bssid);
+                // console.log("NightShift Bssid:" + newNightShift[0].lamp.Bssid);
             }
-        }, 1000);
+        }, 4000);
         while (runLoop) {
             const data = await command(port, '050010\r', dataParser);
             // const data1 = await command(port, "20020420\r", dataParser); 
