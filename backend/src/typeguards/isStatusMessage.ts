@@ -1,3 +1,4 @@
+"use strict";
 interface statusMessage {
     charging: number;
     ssid: string;

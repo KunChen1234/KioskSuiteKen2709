@@ -1,3 +1,4 @@
+"use strict";
 import nodeConfig from "config";
 import { writeFileSync, existsSync, unlinkSync } from "fs";
 import { normalize } from "path";

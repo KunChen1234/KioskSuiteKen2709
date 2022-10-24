@@ -1,10 +1,9 @@
+"use strict";
 import { connect, IClientOptions } from "mqtt";
 import nodeConfig from "config";
 // import setLogger from "./logger";
 import { isStatusMessage } from "./typeguards/isStatusMessage";
 import { EventEmitter } from 'node:events';
-import { isInfoMessage } from "./typeguards/isInfoMessage";
-import { isDsrcStatus } from './typeguards/isDsrcStatus';
 /**
  * 
  * @param sn string - Serial number of test unit
@@ -35,9 +34,9 @@ async function mqtt(sn: string): Promise<
         // // logger.debug(`Attempting MQTT Connection to broker ${mqttBroker} with username ${mqttOptions.username}`)
         const mqttClient = connect(mqttBroker, mqttOptions);
         mqttClient.on("connect", (connack) => {
-            console.log("connected: " + JSON.stringify(connack))
+            // console.log("connected: " + JSON.stringify(connack))
             // logger.debug("Connected");
-            console.log("connected")
+            // console.log("connected")
             mqttClient.subscribe([
                 `${sn}/device/status`,
                 `production/testing/${sn}`
@@ -70,22 +69,21 @@ async function mqtt(sn: string): Promise<
             // console.log(payload.toString());
             if (topic.split(/\/(.*)/s)[1] === "device/status") {
                 statusReceived = true;
-                // Do Something
                 try {
                     const msg = JSON.parse(payload.toString());
                     if (isStatusMessage(msg)) {
                         if (msg.fuelRaw > 0 && msg.fuelRaw < 5000) {
                             // Do Something
                             // Confirm Fuel Gauge is operating
-                            console.log("FUEL VALUE START");
-                            console.log(msg.fuelRaw.toString());
-                            console.log("FUEL VALUE END");
+                            // console.log("FUEL VALUE START");
+                            // console.log(msg.fuelRaw.toString());
+                            // console.log("FUEL VALUE END");
                             fuelOk = true
                             result.bssid = msg.bssid;
                             if (msg.charging === 1) {
                                 result.chargingStatus = true;
                             }
-                            console.log("DataFrom" + payload.toString());
+                            // console.log("DataFrom" + payload.toString());
                         } else {
                             console.log("FUEL VALUE START");
                             console.log(msg.fuelRaw.toString());
@@ -111,7 +109,7 @@ async function mqtt(sn: string): Promise<
 }
 
 // async function a() {
-//     const a = await mqtt("cr4c7525bc70d0");
+//     const a = await mqtt("cr4c7525bc785c");
 //     console.log("bssid:" + a.bssid);
 //     console.log("ChargingStatus:" + a.chargingStatus);
 // }

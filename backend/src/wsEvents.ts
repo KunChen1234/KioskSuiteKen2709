@@ -1,3 +1,4 @@
+"use strict";
 import { LampInfo } from "./typeguards/LampInfo"
 import { PeopleInfoTag } from "./typeguards/PeopleInfoTag"
 import { TagBoardInfo } from "./typeguards/TagBoardInfo";
@@ -21,6 +22,8 @@ interface ServerToClientEvents {
 	DayShift: (DayShift: TagBoardInfo[]) => void;
 	NightShift: (NightShift: TagBoardInfo[]) => void;
 	ReadyForNext: (ready: boolean) => void;
+	UpdateDayShift: (UpdateDayShift: TagBoardInfo[]) => void;
+	UpdateNightShift: (UpdateNightShift: TagBoardInfo[]) => void;
 	// section: "maintanence",
 
 }
@@ -33,6 +36,9 @@ interface ClientToServerEvents {
 	userInputs: (userInputs: unknown) => void;
 	getDayShift: () => void;
 	getNightShift: () => void;
+
+	UpdateShift: () => void;
+	
 }
 interface InterServerEvents {
 	ping: () => void;

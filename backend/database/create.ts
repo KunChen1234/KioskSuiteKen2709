@@ -5,9 +5,9 @@ const prisma = new PrismaClient()
 async function CreateData() {
     await prisma.user.create({
         data: {
-            id: 2,
-            serialnumber: '0000001',
-            section: "maintanence",
+            id: 3,
+            serialnumber: '0000002',
+            section: "manager",
             name: 'test1',
             photo: './image/persontest.jpg',
             job: 'job1'
@@ -18,14 +18,14 @@ async function CreateData() {
 async function Update() {
     const user = await prisma.user.update({
         where: {
-            serialnumber: 'C0409W-4C7525BC7020',
+            serialnumber: '0000002',
         },
         data: {
-            photo: 'persontest.jpg'
+            section: "manager"
         },
     })
 }
-CreateData()
+Update()
     .then(async () => {
         await prisma.$disconnect()
     })

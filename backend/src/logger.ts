@@ -1,3 +1,4 @@
+"use strict";
 import winston, { createLogger, format } from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
 import { mkdirSync, existsSync } from "fs";

@@ -1,3 +1,4 @@
+"use strict";
 import http from "http";
 import { close, createWriteStream, readFileSync, writeFileSync } from "fs";
 import { normalize } from "path";
@@ -9,7 +10,7 @@ import { EventEmitter } from "node:events";
 import { readTag } from "@roobuck-rnd/nfc_tools";
 import Scanmain from "./scanner";
 import { Client } from "socket.io/dist/client";
-import { isObject, stripVTControlCharacters } from "util";
+import { stripVTControlCharacters } from "util";
 
 
 const internalEvents = new EventEmitter;
