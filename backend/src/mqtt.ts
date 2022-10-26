@@ -12,16 +12,16 @@ import { EventEmitter } from 'node:events';
 async function mqtt(sn: string): Promise<
     {
         bssid: string | null;
-        chargingStatus: boolean
+        chargingStatus: boolean | undefined
     }> {
     return new Promise((resolve) => {
         // const logger = setLogger("mqtt.js");
         let result: {
             bssid: string | null;
-            chargingStatus: boolean
+            chargingStatus: boolean | undefined
         } = {
             bssid: null,
-            chargingStatus: false
+            chargingStatus: undefined
         }
         const mqttOptions: IClientOptions = {
             clientId: `roobuck_test_Kiosk`,
@@ -60,7 +60,7 @@ async function mqtt(sn: string): Promise<
         });
         let statusReceived = false;
         let fuelOk = false;
-        mqttClient.on("message", (topic, payload, packet) => {
+        mqttClient.on("message", (topic, payload) => {
             if (topic === `production/testing/${sn}`) {
                 // logger.debug(payload.toString());
                 // console.log("tpic produnction: " + payload.toString())

@@ -25,6 +25,7 @@ interface ServerToClientEvents {
 	UpdateDayShift: (UpdateDayShift: TagBoardInfo[]) => void;
 	UpdateNightShift: (UpdateNightShift: TagBoardInfo[]) => void;
 	// section: "maintanence",
+	test: (test: string) => void;
 
 }
 interface ClientToServerEvents {
@@ -38,7 +39,7 @@ interface ClientToServerEvents {
 	getNightShift: () => void;
 
 	UpdateShift: () => void;
-	
+
 }
 interface InterServerEvents {
 	ping: () => void;
