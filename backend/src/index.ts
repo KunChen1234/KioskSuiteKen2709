@@ -71,14 +71,15 @@ async function main() {
 		ChargingStatus: undefined
 	}
 	setInterval(() => {
-		if (newDayShift.length > 0) {
+		if (newDayShift.length > 0 && newDayShift.length == DayShift.length) {
 			wsServer.emit("UpdateDayShift", newDayShift);
 		}
 		else {
 			console.log("update dayshift failed")
 		}
-		if (newNightShift.length > 0) {
+		if (newNightShift.length > 0 && newNightShift.length == NightShift.length) {
 			wsServer.emit("UpdateNightShift", newNightShift);
+			console.log("update Nightshift successfull")
 		}
 		else {
 			console.log("update night shift failed")
@@ -198,20 +199,22 @@ async function main() {
 		}
 		//get information from mqtt
 		if (AllShift.length > 0) {
-			newDayShift = [];
-			newNightShift = [];
-			AllShift.forEach(async element => {
+			newDayShift = DayShift;
+			newNightShift = NightShift;
+			newDayShift.forEach(async element => {
 				if (element.lamp.SN) {
 					const resultFromMqtt = await mqtt(element.lamp.SN);
 					console.log(resultFromMqtt.bssid);
 					element.lamp.Bssid = resultFromMqtt.bssid;
 					element.lamp.ChargingStatus = resultFromMqtt.chargingStatus;
-					if (element.person.isDayShift) {
-						newDayShift.push(element);
-					}
-					else {
-						newNightShift.push(element);
-					}
+				}
+			});
+			newNightShift.forEach(async element => {
+				if (element.lamp.SN) {
+					const resultFromMqtt = await mqtt(element.lamp.SN);
+					console.log(resultFromMqtt.bssid);
+					element.lamp.Bssid = resultFromMqtt.bssid;
+					element.lamp.ChargingStatus = resultFromMqtt.chargingStatus;
 				}
 			});
 		}
