@@ -1,4 +1,5 @@
 "use strict";
+import DepartmentInfo from "./typeguards/DepartmentInfo";
 import AdpartmentInfo from "./typeguards/DepartmentInfo";
 import { LampInfo } from "./typeguards/LampInfo"
 import { PeopleInfoTag } from "./typeguards/PeopleInfoTag"
@@ -26,6 +27,7 @@ interface ServerToClientEvents {
 	UpdateDayShift: (UpdateDayShift: TagBoardInfo[]) => void;
 	UpdateNightShift: (UpdateNightShift: TagBoardInfo[]) => void;
 	UpdateTime: (UpdateTIme: Date) => void;
+	UpdateDepartmentInfo: (DepartmentInfo: DepartmentInfo[]) => void;
 	// section: "maintanence",
 	test: (test: string) => void;
 

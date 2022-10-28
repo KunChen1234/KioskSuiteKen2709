@@ -96,6 +96,8 @@ async function main() {
 	wsServer.on("connect", (client) => {
 		client.on("addNewDepartment", (msg) => {
 			DepartmentInfo.push(msg);
+			console.log(msg);
+			wsServer.emit("UpdateDepartmentInfo", DepartmentInfo);
 		})
 	})
 	while (loop) {
