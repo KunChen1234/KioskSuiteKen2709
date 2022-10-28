@@ -3,7 +3,6 @@ import http from "http";
 import { IncomingMessage, ServerResponse } from "http";
 import { Server, Socket } from "socket.io";
 import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./wsEvents"
-import { EventEmitter } from "node:events";
 import { Scanmain, OpenPort } from "./scanner";
 import { TagBoardInfo } from "./typeguards/TagBoardInfo";
 import mqtt from "./mqtt";
@@ -12,7 +11,7 @@ import { LampInfo } from "./typeguards/LampInfo";
 import SearchingBySN, { Result } from "../database/search";
 import { PrismaClient } from "@prisma/client";
 import { DelimiterParser } from '@serialport/parser-delimiter'
-import { ALL } from "dns";
+import DepartmentInfo from "./typeguards/DepartmentInfo";
 
 
 async function main() {
@@ -46,11 +45,11 @@ async function main() {
 			}
 		}
 	);
-	let AllShift: TagBoardInfo[] = [];
-	let DayShift: TagBoardInfo[] = [];
-	let NightShift: TagBoardInfo[] = [];
+	let newAllShift: TagBoardInfo[] = [];
 	let newDayShift: TagBoardInfo[] = [];
 	let newNightShift: TagBoardInfo[] = [];
+
+	let DepartmentInfo: DepartmentInfo[] = [];
 	let loop = true;
 	let getPeopleInfo = false;
 	let getLampInfo = false;
@@ -68,23 +67,25 @@ async function main() {
 		MAC: undefined,
 		SN: undefined,
 		Bssid: undefined,
-		ChargingStatus: undefined
+		ChargingStatus: undefined,
+		updateTime: undefined
 	}
 	setInterval(() => {
-		if (newDayShift.length > 0 && newDayShift.length == DayShift.length) {
-			wsServer.emit("UpdateDayShift", newDayShift);
+		let updateNightShift: TagBoardInfo[] = [];
+		let updateDayShift: TagBoardInfo[] = [];
+		if (newAllShift.length > 0) {
+			newAllShift.forEach(element => {
+				if (element.person.isDayShift === true) {
+					updateDayShift.push(element);
+				}
+				if (element.person.isDayShift === false) {
+					updateNightShift.push(element);
+				}
+			});
+			console.log("update info");
+			wsServer.emit("UpdateDayShift", updateDayShift);
+			wsServer.emit("UpdateNightShift", updateNightShift);
 		}
-		else {
-			console.log("update dayshift failed")
-		}
-		if (newNightShift.length > 0 && newNightShift.length == NightShift.length) {
-			wsServer.emit("UpdateNightShift", newNightShift);
-			console.log("update Nightshift successfull")
-		}
-		else {
-			console.log("update night shift failed")
-		}
-
 	}, 10000)
 	const serialport = await OpenPort();
 	let dataParser: DelimiterParser | undefined;
@@ -92,9 +93,14 @@ async function main() {
 		dataParser = serialport.pipe(new DelimiterParser({ delimiter: "\r", includeDelimiter: false }));
 	}
 
+	wsServer.on("connect", (client) => {
+		client.on("addNewDepartment", (msg) => {
+			DepartmentInfo.push(msg);
+		})
+	})
 	while (loop) {
 
-		// get data from serialport
+		// get data from 
 		if (serialport && dataParser) {
 			const resultOfScanner = await Scanmain(wsServer, serialport, dataParser);
 			if (resultOfScanner) {
@@ -161,7 +167,8 @@ async function main() {
 						MAC: undefined,
 						SN: undefined,
 						Bssid: undefined,
-						ChargingStatus: undefined
+						ChargingStatus: undefined,
+						updateTime: undefined
 					}
 					newLamp = result;
 					getLampInfo = true;
@@ -169,9 +176,9 @@ async function main() {
 				}
 			}
 			if (getLampInfo && getPeopleInfo) {
-				DayShift = [];
-				NightShift = [];
-				AllShift.push({ person: newpeople, lamp: newLamp });
+				newDayShift = [];
+				newNightShift = [];
+				newAllShift.push({ person: newpeople, lamp: newLamp });
 				// AllShift.forEach(element => {
 				// 	if (element.person.isDayShift) {
 				// 		DayShift.push(element)
@@ -180,43 +187,61 @@ async function main() {
 				// 		NightShift.push(element);
 				// 	}
 				// });
-				for (let i = 0; i < AllShift.length; i++) {
-					if (AllShift[i].person.isDayShift) {
-						DayShift.push(AllShift[i]);
-						console.log("Dayshift length: " + DayShift.length)
+				for (let i = 0; i < newAllShift.length; i++) {
+					if (newAllShift[i].person.isDayShift) {
+						newDayShift.push(newAllShift[i]);
+						console.log("Dayshift length: " + newDayShift.length)
 					}
 					else {
-						NightShift.push(AllShift[i]);
-						console.log("NightShift length: " + NightShift.length)
+						newNightShift.push(newAllShift[i]);
+						console.log("NightShift length: " + newNightShift.length)
 					}
 				}
-				wsServer.emit("NightShift", NightShift);
-				wsServer.emit("DayShift", DayShift);
+				wsServer.emit("NightShift", newNightShift);
+				wsServer.emit("DayShift", newDayShift);
 				getLampInfo = false;
 				getPeopleInfo = false;
 			}
 			dataParser.removeAllListeners();
 		}
 		//get information from mqtt
-		if (AllShift.length > 0) {
-			newDayShift = DayShift;
-			newNightShift = NightShift;
-			newDayShift.forEach(async element => {
-				if (element.lamp.SN) {
+		if (newAllShift.length > 0) {
+			// console.log("use mqtt");
+			newAllShift.forEach(async element => {
+				if (element.lamp.SN && (element.lamp.ChargingStatus === false || element.lamp.ChargingStatus === undefined)) {
 					const resultFromMqtt = await mqtt(element.lamp.SN);
-					console.log(resultFromMqtt.bssid);
+					// console.log(resultFromMqtt.bssid);
+					const date = new Date()
+					const updateTime = Intl.DateTimeFormat("en-UK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(date);
+					element.lamp.updateTime = updateTime;
 					element.lamp.Bssid = resultFromMqtt.bssid;
 					element.lamp.ChargingStatus = resultFromMqtt.chargingStatus;
 				}
 			});
-			newNightShift.forEach(async element => {
-				if (element.lamp.SN) {
-					const resultFromMqtt = await mqtt(element.lamp.SN);
-					console.log(resultFromMqtt.bssid);
-					element.lamp.Bssid = resultFromMqtt.bssid;
-					element.lamp.ChargingStatus = resultFromMqtt.chargingStatus;
+			let updateBoolean: boolean = false;
+			for (let i = 0; i < newAllShift.length; i++) {
+				if (newAllShift[i].lamp.ChargingStatus === true) {
+					// console.log("remove")
+					newAllShift.splice(i, 1);
+					i--;
+					updateBoolean = true;
 				}
-			});
+			}
+			if (updateBoolean) {
+				let updateNightShift: TagBoardInfo[] = [];
+				let updateDayShift: TagBoardInfo[] = [];
+				newAllShift.forEach(element => {
+					if (element.person.isDayShift === true) {
+						updateDayShift.push(element);
+					}
+					if (element.person.isDayShift === false) {
+						updateNightShift.push(element);
+					}
+				});
+				console.log("update info");
+				wsServer.emit("UpdateDayShift", updateDayShift);
+				wsServer.emit("UpdateNightShift", updateNightShift);
+			}
 		}
 	}
 }

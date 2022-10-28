@@ -1,4 +1,5 @@
 "use strict";
+import AdpartmentInfo from "./typeguards/DepartmentInfo";
 import { LampInfo } from "./typeguards/LampInfo"
 import { PeopleInfoTag } from "./typeguards/PeopleInfoTag"
 import { TagBoardInfo } from "./typeguards/TagBoardInfo";
@@ -24,6 +25,7 @@ interface ServerToClientEvents {
 	ReadyForNext: (ready: boolean) => void;
 	UpdateDayShift: (UpdateDayShift: TagBoardInfo[]) => void;
 	UpdateNightShift: (UpdateNightShift: TagBoardInfo[]) => void;
+	UpdateTime: (UpdateTIme: Date) => void;
 	// section: "maintanence",
 	test: (test: string) => void;
 
@@ -35,10 +37,8 @@ interface ClientToServerEvents {
 	beginTest: () => void;
 	endTest: () => void;
 	userInputs: (userInputs: unknown) => void;
-	getDayShift: () => void;
-	getNightShift: () => void;
+	addNewDepartment: (AreaInfo: AdpartmentInfo) => void;
 
-	UpdateShift: () => void;
 
 }
 interface InterServerEvents {

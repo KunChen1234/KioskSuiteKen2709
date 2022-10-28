@@ -28,7 +28,7 @@ async function mqtt(sn: string): Promise<
             username: nodeConfig.get("mqttUser"),
             password: nodeConfig.get("mqttPass")
         }
-        console.log(mqttOptions);
+        // console.log(mqttOptions);
         const mqttBroker = "mqtt://192.168.1.105";
         // console.log(`Attempting MQTT Connection to broker ${mqttBroker} with username ${mqttOptions.username}`)
         // // logger.debug(`Attempting MQTT Connection to broker ${mqttBroker} with username ${mqttOptions.username}`)
@@ -44,14 +44,14 @@ async function mqtt(sn: string): Promise<
             mqttClient.publish(`production/testing/${sn}`, sn)
         });
 
-        const endTest = setTimeout(() => {
-            // logger.error("Timeout Reached. Test Incomplete")
-            console.log("Timeout Reached. Test Incomplete");
-            testManage.emit("endTest");
-        }, 20 * 1000);
+        // const endTest = setTimeout(() => {
+        //     // logger.error("Timeout Reached. Test Incomplete")
+        //     console.log("Timeout Reached. Test Incomplete");
+        //     testManage.emit("endTest");
+        // }, 20 * 1000);
         const testManage = new EventEmitter();
         testManage.on("endTest", () => {
-            clearTimeout(endTest);
+            // clearTimeout(endTest);
             testManage.removeAllListeners("endTest");
             mqttClient.end();
             // logger.debug("Closing MQTT Connection");
@@ -90,7 +90,7 @@ async function mqtt(sn: string): Promise<
                             console.log("FUEL VALUE START");
                             console.log(msg.fuelRaw.toString());
                             console.log("FUEL VALUE END");
-                            fuelOk = false
+                            fuelOk = false;
                         }
                     } else {
                         console.log("failed");

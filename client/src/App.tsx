@@ -16,8 +16,7 @@ function App() {
   const [ID, setID] = useState<string>();
 
   useEffect(() => {
-    socket.on("test",()=>
-    {
+    socket.on("test", () => {
       console.log("A")
     })
     socket.on("LampInfo", (msg) => {

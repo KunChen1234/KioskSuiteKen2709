@@ -1,7 +1,9 @@
-let a: [] = [];
-if (a.length>0) {
-    console.log("a");
+
+const a = [1, 2, 3, 4, 5, 6, 7, 8]
+for (let i = 0; i < a.length; i++) {
+    if (a[i] > 3) {
+        a.splice(i, 1);
+        i--;
+    }
 }
-else {
-    console.log("failed")
-}
+console.log(a)

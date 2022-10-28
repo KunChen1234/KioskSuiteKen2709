@@ -11,5 +11,6 @@ interface LampInfo {
     SN: string | undefined | null;
     Bssid: string | undefined | null;
     ChargingStatus: boolean | undefined | null;
+    updateTime: string | undefined;
 }
 export { LampInfo }
