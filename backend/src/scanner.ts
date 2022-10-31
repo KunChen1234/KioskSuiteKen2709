@@ -141,5 +141,5 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
     }
 
 }
-export { Scanmain, OpenPort }
+export { Scanmain, OpenPort, FindCOM }
 

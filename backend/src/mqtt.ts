@@ -87,10 +87,10 @@ async function mqtt(sn: string): Promise<
                             }
                             // console.log("DataFrom" + payload.toString());
                         } else {
-                            console.log("FUEL VALUE START");
-                            console.log(msg.fuelRaw.toString());
-                            console.log("FUEL VALUE END");
-                            fuelOk = false;
+                            // console.log("FUEL VALUE START");
+                            // console.log(msg.fuelRaw.toString());
+                            // console.log("FUEL VALUE END");
+                            // fuelOk = false;
                         }
                     } else {
                         console.log("failed");
