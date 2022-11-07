@@ -9,7 +9,7 @@ import { TagBoardInfo } from "./typeguards/TagBoardInfo";
 import mqtt from "./mqtt";
 import { PeopleInfoTag } from "./typeguards/PeopleInfoTag";
 import { LampInfo } from "./typeguards/LampInfo";
-import SearchingBySN, { Result } from "../database/search";
+import SearchingBySN, { Result } from "../database/User/search";
 import { PrismaClient } from "@prisma/client";
 import { DelimiterParser } from '@serialport/parser-delimiter'
 import DepartmentInfo from "./typeguards/DepartmentInfo";

@@ -9,11 +9,30 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-model User{
-  id Int @id @default(autoincrement())
-  serialnumber String? @unique
-  name String?
-  section String?    
-  photo String @default("miner.png")
-  job String?
+
+model Area {
+  id        Int     @id @default(autoincrement())
+  areaName  String? @unique
+  areacolor String?
+  Users     User[]
+}
+
+model User {
+  id             Int         @id @default(autoincrement())
+  serialnumber   String?     @unique
+  firstName      String?
+  lastName       String?
+  photo          String      @default("miner.png")
+  job            String?
+  Area           Area?       @relation(fields: [areaName], references: [areaName])
+  areaName       String?
+  Department     Department? @relation(fields: [departmentName], references: [departmentName])
+  departmentName String?
+}
+
+model Department {
+  id              Int     @id @default(autoincrement())
+  departmentName  String? @unique
+  departmentcolor String?
+  Users           User[]
 }
