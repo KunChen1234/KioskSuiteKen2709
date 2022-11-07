@@ -9,12 +9,12 @@ import { TagBoardInfo } from "./typeguards/TagBoardInfo";
 import mqtt from "./mqtt";
 import { PeopleInfoTag } from "./typeguards/PeopleInfoTag";
 import { LampInfo } from "./typeguards/LampInfo";
-import SearchingBySN, { Result } from "../database/User/search";
 import { PrismaClient } from "@prisma/client";
 import { DelimiterParser } from '@serialport/parser-delimiter'
 import DepartmentInfo from "./typeguards/DepartmentInfo";
 import getIP from "./getIP";
 import { exit } from "process";
+import SearchingBySN from '../database/User/search';
 
 
 async function main() {
@@ -129,7 +129,7 @@ async function main() {
 						*get information from database
 						*/
 						const prisma = new PrismaClient();
-						const dataFromdatabase: Result | null = await SearchingBySN(result.ID);
+						const dataFromdatabase = await SearchingBySN(result.ID);
 						try {
 							await prisma.$disconnect();
 							console.log("data closed")

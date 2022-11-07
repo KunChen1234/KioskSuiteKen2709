@@ -1,34 +1,25 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
+import resultOfUser from '../../src/typeguards/resultOfUserFromDatabase';
 
-interface resultOfUser {
-    serialnumber: String;
-    firstName: String;
-    lastName: String;
-    photo: String;
-    job: String;
-    section: Area;
-    department: Department;
-}
-interface Department {
-    departmentName: String;
-    departmentColor: String;
-}
-interface Area {
-    AreaName: String;
-    AreaColor: String;
-}
 const prisma = new PrismaClient()
-async function SearchingBySN() {
+async function SearchingBySN(number: string) {
     let user;
     try {
-        user = await prisma.user.findMany({
+        user = await prisma.user.findUnique({
+            where: {
+                serialnumber: number,
+            },
             include: {
                 Area: true,
                 Department: true
             }
         })
-        const data = user;
-        console.log(data)
+        if (user) {
+            const data: resultOfUser = user;
+            console.log(data.Area);
+            console.log(typeof data)
+        }
+
     }
     catch (e) {
         console.log("can not find data");
@@ -36,12 +27,13 @@ async function SearchingBySN() {
     }
     return null;
 }
-SearchingBySN()
-    .then(async () => {
-        await prisma.$disconnect()
-    })
-    .catch(async (e) => {
-        console.error(e)
-        await prisma.$disconnect()
-        process.exit(1)
-    })
+export default SearchingBySN;
+// SearchingBySN("0000001")
+//     .then(async () => {
+//         await prisma.$disconnect()
+//     })
+//     .catch(async (e) => {
+//         console.error(e)
+//         await prisma.$disconnect()
+//         process.exit(1)
+//     })

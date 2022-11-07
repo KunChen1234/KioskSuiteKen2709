@@ -1,5 +1,5 @@
 interface AreaInfo {
-    Name: string;
-    Color: string;
+    areaName?: string | null | undefined;
+    areaColor?: string | null | undefined;
 }
 export default AreaInfo;

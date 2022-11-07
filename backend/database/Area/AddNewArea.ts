@@ -1,21 +1,23 @@
 import { PrismaClient } from '@prisma/client'
+import AreaInfo from '../../src/typeguards/AreaInfo';
 const prisma = new PrismaClient()
-async function AddArea() {
+async function AddArea(newArea: AreaInfo) {
   await prisma.area.create({
     data: {
-      areaName: "Maintanence",
-      areacolor: "#29bdc1"
+      areaName: newArea.areaName,
+      areacolor: newArea.areaColor
     },
   })
   const a = await prisma.area.findMany();
   console.log(a);
 }
-AddArea()
-  .then(async () => {
-    await prisma.$disconnect()
-  })
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+export default AddArea;
+// AddArea()
+//   .then(async () => {
+//     await prisma.$disconnect()
+//   })
+//   .catch(async (e) => {
+//     console.error(e)
+//     await prisma.$disconnect()
+//     process.exit(1)
+//   })
