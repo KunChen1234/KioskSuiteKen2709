@@ -10,7 +10,7 @@ async function CreateData() {
     })
     const a = await prisma.department.findMany({
     })
-    console.log(typeof a);
+    console.log(a);
 }
 CreateData()
     .then(async () => {

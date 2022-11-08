@@ -1,6 +1,6 @@
 import AreaInfo from '../../src/typeguards/AreaInfo';
 import DepartmentInfo from '../../src/typeguards/DepartmentInfo';
-interface resultOfUser {
+interface resultOfUserFromDatabase {
     serialnumber: string | null;
     firstName: string | null;
     lastName: string | null;
@@ -11,4 +11,4 @@ interface resultOfUser {
     Area: AreaInfo | null;
     Department: DepartmentInfo | null;
 }
-export default resultOfUser;
+export default resultOfUserFromDatabase;

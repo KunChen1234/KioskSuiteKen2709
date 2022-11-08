@@ -11,10 +11,14 @@ time: time of sign in,
 isDayShift: nightshift or day shift.
 */
 "use strict";
+import DepartmentInfo from "./DepartmentInfo";
+
 interface PeopleInfoTag {
     ID: string | undefined | null;
     section: string | undefined | null;
-    name: string | undefined | null;
+    firstName: string | undefined | null;
+    lastName: string | undefined | null;
+    department: DepartmentInfo | undefined | null;
     photo: string | undefined | null;
     job: string | undefined | null;
     date: string | undefined | null;

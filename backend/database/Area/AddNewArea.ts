@@ -12,12 +12,13 @@ async function AddArea(newArea: AreaInfo) {
   console.log(a);
 }
 export default AddArea;
-// AddArea()
-//   .then(async () => {
-//     await prisma.$disconnect()
-//   })
-//   .catch(async (e) => {
-//     console.error(e)
-//     await prisma.$disconnect()
-//     process.exit(1)
-//   })
+const area: AreaInfo = { areaName: "Maintanence", areaColor: "#0000ff" }
+AddArea(area)
+  .then(async () => {
+    await prisma.$disconnect()
+  })
+  .catch(async (e) => {
+    console.error(e)
+    await prisma.$disconnect()
+    process.exit(1)
+  })
