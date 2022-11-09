@@ -1,22 +1,16 @@
 import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
-async function Search() {
-    let user;
+import AreaInfo from '../../src/typeguards/AreaInfo';
+async function getAllArea(prisma: PrismaClient): Promise<AreaInfo[] | undefined> {
     try {
-        user = await prisma.area.findMany()
-        console.log(user);
+        const allArea: AreaInfo[] = await prisma.area.findMany()
+        console.log(allArea);
+        return new Promise((resolve) => {
+            resolve(allArea);
+        })
     }
     catch (e) {
         console.log("can not find data from area table");
         console.log(e);
     }
 }
-Search()
-    .then(async () => {
-        await prisma.$disconnect()
-    })
-    .catch(async (e) => {
-        console.error(e)
-        await prisma.$disconnect()
-        process.exit(1)
-    })
+export default getAllArea;

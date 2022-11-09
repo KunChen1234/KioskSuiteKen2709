@@ -7,7 +7,7 @@ async function CreateData() {
             serialnumber: '0000001',
             firstName: 'testFirstName_1',
             lastName: 'testLastName_1',
-            areaName: "Maintanence",
+            areaName: "test1",
             departmentName: "department1",
             job: "job1"
         },

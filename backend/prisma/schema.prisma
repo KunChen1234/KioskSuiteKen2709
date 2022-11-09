@@ -13,7 +13,7 @@ datasource db {
 model Area {
   id        Int     @id @default(autoincrement())
   areaName  String? @unique
-  areacolor String?
+  areaColor String?
   Users     User[]
 }
 
@@ -33,6 +33,6 @@ model User {
 model Department {
   id              Int     @id @default(autoincrement())
   departmentName  String? @unique
-  departmentcolor String?
+  departmentColor String?
   Users           User[]
 }

@@ -13,8 +13,17 @@ import { PrismaClient } from "@prisma/client";
 import { DelimiterParser } from '@serialport/parser-delimiter'
 import DepartmentInfo from "./typeguards/DepartmentInfo";
 import getIP from "./getIP";
-import { exit } from "process";
+import { exit, removeAllListeners, removeListener } from "process";
 import SearchingBySN from '../database/User/search';
+import AddArea from "../database/Area/AddNewArea";
+import closeDatabase from "../database/closeDatabase";
+import { MessageChannel } from "worker_threads";
+import AddNewDepartment from "../database/Department/AddDepartment";
+import getAllDepartment from "../database/Department/SearchDepartment";
+import DeleteOneDepartment from "../database/Department/DeleteDepartment";
+import getAllArea from "../database/Area/GetAllArea";
+import { remove } from "winston";
+import serverAction from "./serverAction/serverAction";
 
 
 async function main() {
@@ -49,6 +58,7 @@ async function main() {
 			}
 		}
 	);
+	serverAction(wsServer, prisma);
 	let newAllShift: TagBoardInfo[] = [];
 	let newDayShift: TagBoardInfo[] = [];
 	let newNightShift: TagBoardInfo[] = [];
@@ -98,15 +108,11 @@ async function main() {
 	if (serialport) {
 		dataParser = serialport.pipe(new DelimiterParser({ delimiter: "\r", includeDelimiter: false }));
 	}
+	//Sever listening
 
-	wsServer.on("connect", (client) => {
-		client.on("addNewDepartment", (msg) => {
-			DepartmentInfo.push(msg);
-			console.log(msg);
-			wsServer.emit("UpdateDepartmentInfo", DepartmentInfo);
-		})
-	})
 	const { result, path } = await FindCOM();
+
+
 	if (result) {
 		while (loop) {
 
@@ -135,15 +141,7 @@ async function main() {
 						*/
 
 						const dataFromdatabase = await SearchingBySN(result.ID);
-						try {
-							await prisma.$disconnect();
-							console.log("data closed")
-						}
-						catch (e) {
-							console.error(e)
-							await prisma.$disconnect()
-							process.exit(1)
-						}
+						closeDatabase(prisma);
 						if (dataFromdatabase) {
 							const date = new Date()
 							newpeople = {

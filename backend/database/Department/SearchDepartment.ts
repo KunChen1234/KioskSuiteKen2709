@@ -1,22 +1,17 @@
 import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
-async function Search() {
-    let user;
+import DepartmentInfo from '../../src/typeguards/DepartmentInfo';
+import closeDatabase from '../closeDatabase';
+async function getAllDepartment(prisma: PrismaClient): Promise<DepartmentInfo[] | undefined> {
     try {
-        user = await prisma.department.findMany()
-        console.log(user);
+        const allDepartmnet: DepartmentInfo[] = await prisma.department.findMany()
+        console.log(allDepartmnet);
+        return new Promise((resolve) => {
+            resolve(allDepartmnet);
+        })
     }
     catch (e) {
         console.log("can not find data from department table");
         console.log(e);
     }
 }
-Search()
-    .then(async () => {
-        await prisma.$disconnect()
-    })
-    .catch(async (e) => {
-        console.error(e)
-        await prisma.$disconnect()
-        process.exit(1)
-    })
+export default getAllDepartment;

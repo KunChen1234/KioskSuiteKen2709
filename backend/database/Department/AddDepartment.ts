@@ -1,25 +1,28 @@
 import { PrismaClient } from '@prisma/client'
+import { resolve } from 'path';
+import DepartmentInfo from '../../src/typeguards/DepartmentInfo';
 
-const prisma = new PrismaClient()
-async function CreateData() {
+async function AddNewDepartment(newDepartment: DepartmentInfo,prisma:PrismaClient): Promise<DepartmentInfo[]> {
     await prisma.department.create({
         data: {
-            departmentName: "department1",
-            departmentcolor: "#00ffab"
+            departmentName: newDepartment.departmentName,
+            departmentColor: newDepartment.departmentColor
         },
     })
-    const a = await prisma.department.findMany({
+    const allDepartmnet: DepartmentInfo[] = await prisma.department.findMany({
     })
-    console.log(a);
+    return new Promise((resolve) => {
+        resolve(allDepartmnet);
+    })
 }
-CreateData()
-    .then(async () => {
-        await prisma.$disconnect()
-    })
-    .catch(async (e) => {
-        console.error(e)
-        await prisma.$disconnect()
-        process.exit(1)
-    })
+// CreateData()
+//     .then(async () => {
+//         await prisma.$disconnect()
+//     })
+//     .catch(async (e) => {
+//         console.error(e)
+//         await prisma.$disconnect()
+//         process.exit(1)
+//     })
 
-//export default CreateData
+export default AddNewDepartment;

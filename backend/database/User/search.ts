@@ -18,6 +18,7 @@ async function SearchingBySN(number: string): Promise<resultOfUser | null> {
         return new Promise((resolve) => {
             if (user) {
                 const data: resultOfUser = user;
+                console.log(data);
                 resolve(data);
             }
         })
