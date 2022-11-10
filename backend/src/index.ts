@@ -58,7 +58,11 @@ async function main() {
 			}
 		}
 	);
+
+	//Comunicate between client and server
 	serverAction(wsServer, prisma);
+
+
 	let newAllShift: TagBoardInfo[] = [];
 	let newDayShift: TagBoardInfo[] = [];
 	let newNightShift: TagBoardInfo[] = [];
@@ -113,154 +117,154 @@ async function main() {
 	const { result, path } = await FindCOM();
 
 
-	if (result) {
-		while (loop) {
+	// if (result) {
+	// 	while (loop) {
 
-			// get data from  database
-			if (serialport && dataParser) {
-				const resultOfScanner = await Scanmain(wsServer, serialport, dataParser);
-				if (resultOfScanner) {
-					const result = JSON.parse(resultOfScanner);
-					if (result.ID) {
-						console.log("people")
-						newpeople = {
-							ID: undefined,
-							section: undefined,
-							lastName: undefined,
-							firstName: undefined,
-							department: undefined,
-							photo: undefined,
-							job: undefined,
-							date: undefined,
-							time: undefined,
-							isDayShift: undefined
-						}
-						wsServer.emit("PeopleID", result.ID);
-						/*
-						*get information from database
-						*/
+	// 		// get data from  database
+	// 		if (serialport && dataParser) {
+	// 			const resultOfScanner = await Scanmain(wsServer, serialport, dataParser);
+	// 			if (resultOfScanner) {
+	// 				const result = JSON.parse(resultOfScanner);
+	// 				if (result.ID) {
+	// 					console.log("people")
+	// 					newpeople = {
+	// 						ID: undefined,
+	// 						section: undefined,
+	// 						lastName: undefined,
+	// 						firstName: undefined,
+	// 						department: undefined,
+	// 						photo: undefined,
+	// 						job: undefined,
+	// 						date: undefined,
+	// 						time: undefined,
+	// 						isDayShift: undefined
+	// 					}
+	// 					wsServer.emit("PeopleID", result.ID);
+	// 					/*
+	// 					*get information from database
+	// 					*/
 
-						const dataFromdatabase = await SearchingBySN(result.ID);
-						closeDatabase(prisma);
-						if (dataFromdatabase) {
-							const date = new Date()
-							newpeople = {
-								ID: dataFromdatabase.serialnumber,
-								section: dataFromdatabase.areaName,
-								lastName: dataFromdatabase.lastName,
-								firstName: dataFromdatabase.firstName,
-								department: dataFromdatabase.Department,
-								photo: dataFromdatabase.photo,
-								job: dataFromdatabase.job,
-								date: Intl.DateTimeFormat("en-UK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(date),
-								time: Intl.DateTimeFormat("en-UK", { hour: "2-digit", minute: "2-digit" }).format(date),
-								isDayShift: undefined
-							}
-							if (newpeople.time) {
-								if (newpeople.time >= "04:00:00" && newpeople.time <= "16:00:00") {
-									console.log("dayshift")
-									newpeople.isDayShift = true;
-								}
-								else {
-									newpeople.isDayShift = false;
-								}
-							}
-							dataParser.removeAllListeners();
-							getPeopleInfo = true;
-						}
-						else {
-							console.log("no match info");
-						}
-						console.log(newpeople)
-					}
-					if (result.MAC && result.SN) {
-						console.log("lamp");
-						newLamp = {
-							MAC: undefined,
-							SN: undefined,
-							Bssid: undefined,
-							ChargingStatus: undefined,
-							updateTime: undefined
-						}
-						newLamp = result;
-						getLampInfo = true;
-						wsServer.emit("LampInfo", result);
-					}
-				}
-				if (getLampInfo && getPeopleInfo) {
-					newDayShift = [];
-					newNightShift = [];
-					newAllShift.push({ person: newpeople, lamp: newLamp });
-					// AllShift.forEach(element => {
-					// 	if (element.person.isDayShift) {
-					// 		DayShift.push(element)
-					// 	}
-					// 	else {
-					// 		NightShift.push(element);
-					// 	}
-					// });
-					for (let i = 0; i < newAllShift.length; i++) {
-						if (newAllShift[i].person.isDayShift) {
-							newDayShift.push(newAllShift[i]);
-							console.log("Dayshift length: " + newDayShift.length)
-						}
-						else {
-							newNightShift.push(newAllShift[i]);
-							console.log("NightShift length: " + newNightShift.length)
-						}
-					}
-					wsServer.emit("NightShift", newNightShift);
-					wsServer.emit("DayShift", newDayShift);
-					getLampInfo = false;
-					getPeopleInfo = false;
-				}
-				dataParser.removeAllListeners();
-			}
-			//get information from mqtt
-			// if (newAllShift.length > 0) {
-			// 	// console.log("use mqtt");
-			// 	newAllShift.forEach(async element => {
-			// 		if (element.lamp.SN && (element.lamp.ChargingStatus === false || element.lamp.ChargingStatus === undefined)) {
-			// 			const resultFromMqtt = await mqtt(element.lamp.SN);
-			// 			// console.log(resultFromMqtt.bssid);
-			// 			const date = new Date()
-			// 			const updateTime = Intl.DateTimeFormat("en-UK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(date);
-			// 			element.lamp.updateTime = updateTime;
-			// 			element.lamp.Bssid = resultFromMqtt.bssid;
-			// 			element.lamp.ChargingStatus = resultFromMqtt.chargingStatus;
-			// 		}
-			// 	});
-			// 	let updateBoolean: boolean = false;
-			// 	for (let i = 0; i < newAllShift.length; i++) {
-			// 		if (newAllShift[i].lamp.ChargingStatus === true) {
-			// 			// console.log("remove")
-			// 			newAllShift.splice(i, 1);
-			// 			i--;
-			// 			updateBoolean = true;
-			// 		}
-			// 	}
-			// 	if (updateBoolean) {
-			// 		let updateNightShift: TagBoardInfo[] = [];
-			// 		let updateDayShift: TagBoardInfo[] = [];
-			// 		newAllShift.forEach(element => {
-			// 			if (element.person.isDayShift === true) {
-			// 				updateDayShift.push(element);
-			// 			}
-			// 			if (element.person.isDayShift === false) {
-			// 				updateNightShift.push(element);
-			// 			}
-			// 		});
-			// 		console.log("sign out");
-			// 		wsServer.emit("UpdateDayShift", updateDayShift);
-			// 		wsServer.emit("UpdateNightShift", updateNightShift);
-			// 	}
-			// }
-		}
-	}
-	else {
-		console.log("conncet to scanner please");
-		exit(1);
-	}
+	// 					const dataFromdatabase = await SearchingBySN(result.ID);
+	// 					closeDatabase(prisma);
+	// 					if (dataFromdatabase) {
+	// 						const date = new Date()
+	// 						newpeople = {
+	// 							ID: dataFromdatabase.serialnumber,
+	// 							section: dataFromdatabase.areaName,
+	// 							lastName: dataFromdatabase.lastName,
+	// 							firstName: dataFromdatabase.firstName,
+	// 							department: dataFromdatabase.Department,
+	// 							photo: dataFromdatabase.photo,
+	// 							job: dataFromdatabase.job,
+	// 							date: Intl.DateTimeFormat("en-UK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(date),
+	// 							time: Intl.DateTimeFormat("en-UK", { hour: "2-digit", minute: "2-digit" }).format(date),
+	// 							isDayShift: undefined
+	// 						}
+	// 						if (newpeople.time) {
+	// 							if (newpeople.time >= "04:00:00" && newpeople.time <= "16:00:00") {
+	// 								console.log("dayshift")
+	// 								newpeople.isDayShift = true;
+	// 							}
+	// 							else {
+	// 								newpeople.isDayShift = false;
+	// 							}
+	// 						}
+	// 						dataParser.removeAllListeners();
+	// 						getPeopleInfo = true;
+	// 					}
+	// 					else {
+	// 						console.log("no match info");
+	// 					}
+	// 					console.log(newpeople)
+	// 				}
+	// 				if (result.MAC && result.SN) {
+	// 					console.log("lamp");
+	// 					newLamp = {
+	// 						MAC: undefined,
+	// 						SN: undefined,
+	// 						Bssid: undefined,
+	// 						ChargingStatus: undefined,
+	// 						updateTime: undefined
+	// 					}
+	// 					newLamp = result;
+	// 					getLampInfo = true;
+	// 					wsServer.emit("LampInfo", result);
+	// 				}
+	// 			}
+	// 			if (getLampInfo && getPeopleInfo) {
+	// 				newDayShift = [];
+	// 				newNightShift = [];
+	// 				newAllShift.push({ person: newpeople, lamp: newLamp });
+	// 				// AllShift.forEach(element => {
+	// 				// 	if (element.person.isDayShift) {
+	// 				// 		DayShift.push(element)
+	// 				// 	}
+	// 				// 	else {
+	// 				// 		NightShift.push(element);
+	// 				// 	}
+	// 				// });
+	// 				for (let i = 0; i < newAllShift.length; i++) {
+	// 					if (newAllShift[i].person.isDayShift) {
+	// 						newDayShift.push(newAllShift[i]);
+	// 						console.log("Dayshift length: " + newDayShift.length)
+	// 					}
+	// 					else {
+	// 						newNightShift.push(newAllShift[i]);
+	// 						console.log("NightShift length: " + newNightShift.length)
+	// 					}
+	// 				}
+	// 				wsServer.emit("NightShift", newNightShift);
+	// 				wsServer.emit("DayShift", newDayShift);
+	// 				getLampInfo = false;
+	// 				getPeopleInfo = false;
+	// 			}
+	// 			dataParser.removeAllListeners();
+	// 		}
+	// 		//get information from mqtt
+	// 		// if (newAllShift.length > 0) {
+	// 		// 	// console.log("use mqtt");
+	// 		// 	newAllShift.forEach(async element => {
+	// 		// 		if (element.lamp.SN && (element.lamp.ChargingStatus === false || element.lamp.ChargingStatus === undefined)) {
+	// 		// 			const resultFromMqtt = await mqtt(element.lamp.SN);
+	// 		// 			// console.log(resultFromMqtt.bssid);
+	// 		// 			const date = new Date()
+	// 		// 			const updateTime = Intl.DateTimeFormat("en-UK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(date);
+	// 		// 			element.lamp.updateTime = updateTime;
+	// 		// 			element.lamp.Bssid = resultFromMqtt.bssid;
+	// 		// 			element.lamp.ChargingStatus = resultFromMqtt.chargingStatus;
+	// 		// 		}
+	// 		// 	});
+	// 		// 	let updateBoolean: boolean = false;
+	// 		// 	for (let i = 0; i < newAllShift.length; i++) {
+	// 		// 		if (newAllShift[i].lamp.ChargingStatus === true) {
+	// 		// 			// console.log("remove")
+	// 		// 			newAllShift.splice(i, 1);
+	// 		// 			i--;
+	// 		// 			updateBoolean = true;
+	// 		// 		}
+	// 		// 	}
+	// 		// 	if (updateBoolean) {
+	// 		// 		let updateNightShift: TagBoardInfo[] = [];
+	// 		// 		let updateDayShift: TagBoardInfo[] = [];
+	// 		// 		newAllShift.forEach(element => {
+	// 		// 			if (element.person.isDayShift === true) {
+	// 		// 				updateDayShift.push(element);
+	// 		// 			}
+	// 		// 			if (element.person.isDayShift === false) {
+	// 		// 				updateNightShift.push(element);
+	// 		// 			}
+	// 		// 		});
+	// 		// 		console.log("sign out");
+	// 		// 		wsServer.emit("UpdateDayShift", updateDayShift);
+	// 		// 		wsServer.emit("UpdateNightShift", updateNightShift);
+	// 		// 	}
+	// 		// }
+	// 	}
+	// }
+	// else {
+	// 	console.log("conncet to scanner please");
+	// 	exit(1);
+	// }
 
 }
 

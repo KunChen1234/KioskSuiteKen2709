@@ -39,7 +39,7 @@ function serverAction(wsServer:Server,prisma:PrismaClient)
 			}
 		})
 
-		client.once("getAllArea", async () => {
+		client.on("getAllArea", async () => {
 			const allAreaInfo = await getAllArea(prisma);
 			closeDatabase(prisma);
 			if (allAreaInfo) {
