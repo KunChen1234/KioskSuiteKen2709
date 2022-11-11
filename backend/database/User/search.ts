@@ -39,12 +39,12 @@ async function SearchingBySN(number: string): Promise<resultOfUser | null> {
     return null;
 }
 export default SearchingBySN;
-// SearchingBySN("0000001")
-//     .then(async () => {
-//         await prisma.$disconnect()
-//     })
-//     .catch(async (e) => {
-//         console.error(e)
-//         await prisma.$disconnect()
-//         process.exit(1)
-//     })
+SearchingBySN("0000001")
+    .then(async () => {
+        await prisma.$disconnect()
+    })
+    .catch(async (e) => {
+        console.error(e)
+        await prisma.$disconnect()
+        process.exit(1)
+    })

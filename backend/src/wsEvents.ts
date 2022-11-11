@@ -1,7 +1,7 @@
 "use strict";
 import DepartmentInfo from "./typeguards/DepartmentInfo";
 import { LampInfo } from "./typeguards/LampInfo";
-import { PeopleInfoTag } from "./typeguards/FormOfDataFromUserDatabase";
+import { PeopleInfoTag } from "./typeguards/PeopleInfoTag";
 import { TagBoardInfo } from "./typeguards/TagBoardInfo";
 import AreaInfo from "./typeguards/AreaInfo";
 interface ServerToClientEvents {
@@ -40,7 +40,7 @@ interface ClientToServerEvents {
 	getAllArea: () => void;
 	addNewArea: (AreaInfo: AreaInfo) => void;
 	editArea: (AreaInfo: AreaInfo) => void;
-	removeArea:(AreaName:string)=>void;
+	removeArea: (AreaName: string) => void;
 
 	userInputs: (userInputs: unknown) => void;
 }
