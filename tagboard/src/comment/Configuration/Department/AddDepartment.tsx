@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import useSocket from "../../context/socket";
-import DepartmentInfo from "../hooks/DepartmentForm";
+import useSocket from "../../../context/socket";
+import DepartmentInfo from "../../hooks/DepartmentForm";
 import DepartmentDemo from "./DepartmentDemo";
 function AddDepartment() {
     const socket = useSocket();
@@ -35,7 +35,7 @@ function AddDepartment() {
                         <option label="Dark Gray" value="#666666">Dark Gray</option>
                     </select>
                 </div>
-                <button className="bg-roobuck-blue rounded-lg pt-1 pb-1 pl-3 pr-3 m-1" type="submit">Save</button>
+                <button className="bg-roobuck-blue rounded-lg pt-1 pb-1 pl-3 pr-3 m-1" type="submit">Add New Department</button>
             </form>
             <DepartmentDemo></DepartmentDemo>
         </div>

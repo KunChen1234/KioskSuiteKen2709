@@ -12,7 +12,13 @@ async function DeleteOneDepartment(name: string, prisma: PrismaClient): Promise<
             departmentName: name
         }
     })
-    const allDepartmnet: DepartmentInfo[] = await prisma.department.findMany();
+    const allDepartmnet: DepartmentInfo[] = await prisma.department.findMany(
+        {
+            orderBy: {
+                departmentName: "asc"
+            }
+        }
+    );
     console.log(allDepartmnet);
     return new Promise((resolve) => {
         resolve(allDepartmnet);

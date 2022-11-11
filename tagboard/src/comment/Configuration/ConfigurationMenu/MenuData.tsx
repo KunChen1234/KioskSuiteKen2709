@@ -3,10 +3,10 @@ interface MenuOption {
 	path: string;
 }
 const MenuData: MenuOption[] = [{
-	title: "Add Area",
+	title: "Area",
 	path: "/configuration/addarea",
 }, {
-	title: "Add Department",
+	title: "Department",
 	path: "/configuration/adddepartment",
 }];
 

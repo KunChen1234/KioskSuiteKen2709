@@ -1,6 +1,6 @@
 import { Area, Department, PrismaClient, User } from '@prisma/client';
 import { resolve } from 'path';
-import resultOfUser from '../../src/typeguards/resultOfUserFromDatabase';
+import { resultOfUser } from '../../src/typeguards/FormOfDataFromUserDatabase';
 
 const prisma = new PrismaClient()
 async function SearchingBySN(number: string): Promise<resultOfUser | null> {
@@ -8,7 +8,7 @@ async function SearchingBySN(number: string): Promise<resultOfUser | null> {
     try {
         user = await prisma.user.findUnique({
             where: {
-                serialnumber: number,
+                userID: number,
             },
             include: {
                 Area: true,
@@ -20,6 +20,9 @@ async function SearchingBySN(number: string): Promise<resultOfUser | null> {
                 const data: resultOfUser = user;
                 console.log(data);
                 resolve(data);
+            }
+            else {
+                resolve(null);
             }
         })
         // if (user) {

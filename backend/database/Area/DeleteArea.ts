@@ -1,17 +1,19 @@
 import { PrismaClient } from '@prisma/client'
-import { Interface } from 'readline';
-const prisma = new PrismaClient()
-async function Delete() {
-    await prisma.area.deleteMany();
-    const a = await prisma.area.findMany();
-    console.log(a);
+import AreaInfo from '../../src/typeguards/AreaInfo';
+
+async function deleteOneArea(areaName: string, prisma: PrismaClient): Promise<AreaInfo[]> {
+    await prisma.area.delete({
+        where: {
+            areaName: areaName
+        }
+    })
+    const allArea: AreaInfo[] = await prisma.area.findMany({
+        orderBy: {
+            areaName: "asc"
+        }
+    })
+    return new Promise((resolve) => {
+        resolve(allArea);
+    })
 }
-Delete()
-    .then(async () => {
-        await prisma.$disconnect()
-    })
-    .catch(async (e) => {
-        console.error(e)
-        await prisma.$disconnect()
-        process.exit(1)
-    })
+export default deleteOneArea;

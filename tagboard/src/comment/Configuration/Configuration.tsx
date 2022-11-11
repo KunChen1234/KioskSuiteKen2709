@@ -1,8 +1,8 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Home from '../Home/Home';
 import useWindowDimensions from '../hooks/windowDimensions';
-import AddArea from './AddArea';
-import AddDepartment from './AddDepartment';
+import AddArea from './Area/AddArea';
+import AddDepartment from './Department/AddDepartment';
 import ConfigurationMenu from './ConfigurationMenu/ConfigurationMenu';
 function Configuration() {
     const window = useWindowDimensions();

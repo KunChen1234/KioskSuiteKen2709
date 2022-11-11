@@ -1,7 +1,7 @@
-import AreaInfo from '../../src/typeguards/AreaInfo';
-import DepartmentInfo from '../../src/typeguards/DepartmentInfo';
-interface resultOfUserFromDatabase {
-    serialnumber: string | null;
+import AreaInfo from './AreaInfo';
+import DepartmentInfo from './DepartmentInfo';
+interface resultOfUser {
+    userID: string | null;
     firstName: string | null;
     lastName: string | null;
     photo: string | null;
@@ -11,4 +11,4 @@ interface resultOfUserFromDatabase {
     Area: AreaInfo | null;
     Department: DepartmentInfo | null;
 }
-export default resultOfUserFromDatabase;
+export { resultOfUser };

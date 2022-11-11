@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import AreaInfo from '../../src/typeguards/AreaInfo';
 
 //Add a new area and get all area info
-async function AddArea(newArea: AreaInfo, prisma:PrismaClient): Promise<AreaInfo[]> {
+async function AddArea(newArea: AreaInfo, prisma: PrismaClient): Promise<AreaInfo[]> {
   console.log(newArea.areaName + "database");
   console.log(newArea.areaColor + "database");
   await prisma.area.create({
@@ -12,7 +12,13 @@ async function AddArea(newArea: AreaInfo, prisma:PrismaClient): Promise<AreaInfo
       areaColor: newArea.areaColor
     },
   })
-  const a: AreaInfo[] = await prisma.area.findMany();
+  const a: AreaInfo[] = await prisma.area.findMany(
+    {
+      orderBy: {
+        areaName: "asc"
+      }
+    }
+  );
   return new Promise((resolve) => {
     resolve(a);
   })

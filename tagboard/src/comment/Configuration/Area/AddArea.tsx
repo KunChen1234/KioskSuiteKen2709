@@ -1,14 +1,18 @@
 import React, { useState } from "react";
-import useSocket from "../../context/socket";
-import AreaForm from "../hooks/AreaForm";
+import useSocket from "../../../context/socket";
+import AreaForm from "../../hooks/AreaForm";
+import useWindowDimensions from "../../hooks/windowDimensions";
+import AreaDemo from "./AreaDemo";
 interface Props {
     isAddAreaVisible: boolean;
     close: () => void;
 }
 function AddArea() {
+    const {width,height}=useWindowDimensions();
     const socket = useSocket();
     const [selectedColour, setSelectedColour] = useState("#ff0000");
     const [newAreaName, setNewAreaName] = useState<string>("");
+    const demoHeight=height-100-200-50-6;
     function addNewArea(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
         // dispatch({ type: AreasActionKind.ADD, payload: { newAreaName: newAreaName, newAreaColour: selectedColour } });
@@ -20,8 +24,8 @@ function AddArea() {
         setNewAreaName("");
     }
     return (
-        <div className="grid grid-rows-3 text-center pt-3">
-            <div className="row-span-1">
+        <div className=" text-center">
+            <div className="row-span-1 h-[100px] pt-2">
                 <form onSubmit={addNewArea}>
                     <div>
                         <label>Area Name: </label>
@@ -39,10 +43,12 @@ function AddArea() {
                             <option label="Dark Gray" value="#666666">Dark Gray</option>
                         </select>
                     </div>
-                    <button className="bg-roobuck-blue rounded-lg pt-1 pb-1 pl-3 pr-3 m-1" type="submit">Save</button>
+                    <button className="bg-roobuck-blue rounded-lg pt-1 pb-1 pl-3 pr-3 m-1" type="submit">Add New Area</button>
                 </form>
             </div>
-
+            <div className="row-span-2 pt-2" style={{ overflowY: 'auto', height: demoHeight}}>
+                <AreaDemo></AreaDemo>
+            </div>
         </div>
     )
 }

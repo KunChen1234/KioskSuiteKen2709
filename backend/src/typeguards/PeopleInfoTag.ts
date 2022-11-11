@@ -1,4 +1,3 @@
-
 /*
 This interface used to save people information
 ID: People ID number,

@@ -7,8 +7,8 @@ interface Props {
     shiftTime: string;
 }
 interface DepartmentInfo {
-    departmentName: string ;
-    departmentColor: string ;
+    departmentName: string;
+    departmentColor: string;
 }
 interface PeopleInfoTag {
     ID: string | undefined | null;
@@ -114,23 +114,23 @@ function Personalinfo(props: Props) {
                     let isvisible = false;
                     if (person.section === props.section && person.ID) {
                         return (
-                            <div key={person.ID} className="box-border p-2 min-w-fit max-w-sm  bg-tag-back shadow-lg grid grid-flow-2 h-fit border-4" 
-                            style={{ borderColor: person.department?.departmentColor }}
-                            onMouseEnter={() => {
-                                if (person.ID) {
-                                    if (document.getElementById(person.ID)) {
-                                        document.getElementById(person.ID!)!.style.display = "";
-                                        console.log(document.getElementById(person.ID)?.style.visibility);
+                            <div key={person.ID} className="box-border p-2 min-w-fit max-w-sm  bg-tag-back shadow-lg grid grid-flow-2 h-fit border-4"
+                                style={{ borderColor: person.department?.departmentColor }}
+                                onMouseEnter={() => {
+                                    if (person.ID) {
+                                        if (document.getElementById(person.ID)) {
+                                            document.getElementById(person.ID!)!.style.display = "";
+                                            console.log(document.getElementById(person.ID)?.style.visibility);
+                                        }
                                     }
-                                }
-                            }} onMouseLeave={() => {
-                                if (person.ID) {
-                                    if (document.getElementById(person.ID)) {
-                                        document.getElementById(person.ID!)!.style.display = "none";
-                                        console.log(document.getElementById(person.ID)?.style.visibility);
+                                }} onMouseLeave={() => {
+                                    if (person.ID) {
+                                        if (document.getElementById(person.ID)) {
+                                            document.getElementById(person.ID!)!.style.display = "none";
+                                            console.log(document.getElementById(person.ID)?.style.visibility);
+                                        }
                                     }
-                                }
-                            }}>
+                                }}>
                                 <div className="clo-flow-1">
                                     <img className="inline-block h-20 w-20 rounded-full ring-2 ring-black" src={require("../../image/persontest.jpg")} alt={miner}></img>
                                 </div>

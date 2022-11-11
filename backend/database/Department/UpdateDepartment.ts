@@ -1,14 +1,15 @@
 import { PrismaClient } from '@prisma/client'
-import { resolve } from 'path';
 import DepartmentInfo from '../../src/typeguards/DepartmentInfo';
 
-async function AddNewDepartment(newDepartment: DepartmentInfo,prisma:PrismaClient): Promise<DepartmentInfo[]> {
-    await prisma.department.create({
-        data: {
-            departmentName: newDepartment.departmentName,
-            departmentColor: newDepartment.departmentColor
-        },
-    })
+async function UpdateDepartmentInfo(newDepartment: DepartmentInfo, prisma: PrismaClient): Promise<DepartmentInfo[]> {
+    if (newDepartment.departmentName) {
+        await prisma.department.update({
+            where: {
+                departmentName: newDepartment.departmentName,
+            },
+            data: { departmentColor: newDepartment.departmentColor }
+        })
+    }
     const allDepartmnet: DepartmentInfo[] = await prisma.department.findMany({
         orderBy: {
             departmentName: "asc"
@@ -17,6 +18,7 @@ async function AddNewDepartment(newDepartment: DepartmentInfo,prisma:PrismaClien
     return new Promise((resolve) => {
         resolve(allDepartmnet);
     })
+
 }
 // CreateData()
 //     .then(async () => {
@@ -28,4 +30,4 @@ async function AddNewDepartment(newDepartment: DepartmentInfo,prisma:PrismaClien
 //         process.exit(1)
 //     })
 
-export default AddNewDepartment;
+export default UpdateDepartmentInfo;

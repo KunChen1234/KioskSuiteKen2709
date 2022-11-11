@@ -3,7 +3,13 @@ import DepartmentInfo from '../../src/typeguards/DepartmentInfo';
 import closeDatabase from '../closeDatabase';
 async function getAllDepartment(prisma: PrismaClient): Promise<DepartmentInfo[] | undefined> {
     try {
-        const allDepartmnet: DepartmentInfo[] = await prisma.department.findMany()
+        const allDepartmnet: DepartmentInfo[] = await prisma.department.findMany(
+            {
+                orderBy: {
+                    departmentName: "asc"
+                }
+            }
+        )
         console.log(allDepartmnet);
         return new Promise((resolve) => {
             resolve(allDepartmnet);

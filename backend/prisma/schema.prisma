@@ -19,7 +19,7 @@ model Area {
 
 model User {
   id             Int         @id @default(autoincrement())
-  serialnumber   String?     @unique
+  userID         String?     @unique
   firstName      String?
   lastName       String?
   photo          String      @default("miner.png")
@@ -28,6 +28,7 @@ model User {
   areaName       String?
   Department     Department? @relation(fields: [departmentName], references: [departmentName])
   departmentName String?
+  LoginInfo      LoginInfo[]
 }
 
 model Department {
@@ -35,4 +36,16 @@ model Department {
   departmentName  String? @unique
   departmentColor String?
   Users           User[]
+}
+
+model LoginInfo {
+  id             Int     @id @default(autoincrement())
+  User           User?   @relation(fields: [userID], references: [userID])
+  userID         String
+  LoginTime      String
+  LampMAC        String
+  LampSN         String
+  LampBssid      String?
+  LastUpdateTime String?
+  isDayShift     Boolean
 }

@@ -4,17 +4,17 @@ const prisma = new PrismaClient()
 async function CreateData() {
     await prisma.user.create({
         data: {
-            serialnumber: '0000001',
+            userID: '0000001',
             firstName: 'testFirstName_1',
             lastName: 'testLastName_1',
             areaName: "test1",
-            departmentName: "department1",
+            departmentName: "Contractor",
             job: "job1"
         },
     })
     const a = await prisma.user.findMany({
     })
-    console.log( a);
+    console.log(a);
 }
 CreateData()
     .then(async () => {
