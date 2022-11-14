@@ -1,5 +1,5 @@
-import { Visibility } from '@mui/icons-material';
-import { DetailedHTMLFactory, useEffect, useState } from 'react';
+
+import { useEffect, useState } from 'react';
 import useSocket from "../../context/socket";
 import miner from '../../image/miner.png';
 interface Props {
@@ -10,51 +10,42 @@ interface DepartmentInfo {
     departmentName: string;
     departmentColor: string;
 }
-interface PeopleInfoTag {
-    ID: string | undefined | null;
-    section: string | undefined | null;
-    firstName: string | undefined | null;
-    lastName: string | undefined | null;
-    department: DepartmentInfo | undefined | null;
-    photo: string | undefined | null;
-    job: string | undefined | null;
-    date: string | undefined | null;
-    time: string | undefined | null;
-    isDayShift: boolean | undefined | null;
+interface LoginInfo {
+    User: resultOfUser | null;
+    userID: string;
+    LoginTime: string;
+    LampMAC: string;
+    LampSN: string;
+    LampBssid: string | undefined | null;
+    LastUpdateTime: string | undefined | null;
+    isDayShift: boolean;
 }
-interface LampInfo {
-    MAC: string | undefined | null;
-    SN: string | undefined | null;
-    Bssid: string | undefined | null;
-    updateTime: string | undefined;
-    ChargingStatus: boolean | undefined | null;
+interface resultOfUser {
+    userID: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    photo: string | null;
+    job: string | null;
+    areaName: string | null;
+    departmentName: string | null;
+    Area: AreaInfo | null;
+    Department: DepartmentInfo | null;
 }
-interface TagBoardInfo {
-    person: PeopleInfoTag;
-    lamp: LampInfo;
+interface AreaInfo {
+    areaName?: string | null | undefined;
+    areaColor?: string | null | undefined;
 }
 function Personalinfo(props: Props) {
-    let detail: TagBoardInfo[] = [];
+    let detail: LoginInfo[] = [];
     const socket = useSocket();
-    const [DayShift, setDayShift] = useState<TagBoardInfo[]>(() => {
-        const user = sessionStorage.getItem("DayShift");
-        if (user) {
-            return JSON.parse(user)
-        } else {
-            return null;
-        }
-    });
-    const [NightShift, setNightShift] = useState<TagBoardInfo[]>(() => {
-        const user = sessionStorage.getItem("NightShift");
-        if (user) {
-            return JSON.parse(user)
-        } else {
-            return null;
-        }
-    });
+    const [DayShift, setDayShift] = useState<LoginInfo[]>();
+    const [NightShift, setNightShift] = useState<LoginInfo[]>();
     const [detailVisible, setIsDetailVisible] = useState<boolean[]>([false])
     const [photoSrc, setphotoSrc] = useState<string>();
 
+    useEffect(() => {
+        socket.emit("getLoginInfo");
+    }, [])
     useEffect(() => {
         socket.on("DayShift", (msg) => {
             // console.log("dayshift get data from server");
@@ -109,25 +100,22 @@ function Personalinfo(props: Props) {
                     //  function hideDetail() {
                     //      setIsDetailVisible(false);
                     //  }
-                    const person = entry.person;
-                    const lamp = entry.lamp;
-                    let isvisible = false;
-                    if (person.section === props.section && person.ID) {
+                    if (entry.User?.areaName === props.section && entry.userID) {
                         return (
-                            <div key={person.ID} className="box-border p-2 min-w-fit max-w-sm  bg-tag-back shadow-lg grid grid-flow-2 h-fit border-4"
-                                style={{ borderColor: person.department?.departmentColor }}
+                            <div key={entry.userID.toString()} className="box-border p-2 min-w-fit max-w-sm  bg-tag-back shadow-lg grid grid-flow-2 h-fit border-4"
+                                style={{ borderColor: entry.User.Department?.departmentColor }}
                                 onMouseEnter={() => {
-                                    if (person.ID) {
-                                        if (document.getElementById(person.ID)) {
-                                            document.getElementById(person.ID!)!.style.display = "";
-                                            console.log(document.getElementById(person.ID)?.style.visibility);
+                                    if (entry.userID) {
+                                        if (document.getElementById(entry.userID)) {
+                                            document.getElementById(entry.userID)!.style.display = "";
+                                            // console.log(document.getElementById(entry.userID)?.style.visibility);
                                         }
                                     }
                                 }} onMouseLeave={() => {
-                                    if (person.ID) {
-                                        if (document.getElementById(person.ID)) {
-                                            document.getElementById(person.ID!)!.style.display = "none";
-                                            console.log(document.getElementById(person.ID)?.style.visibility);
+                                    if (entry.userID) {
+                                        if (document.getElementById(entry.userID)) {
+                                            document.getElementById(entry.userID)!.style.display = "none";
+                                            // console.log(document.getElementById(entry.userID)?.style.visibility);
                                         }
                                     }
                                 }}>
@@ -135,20 +123,20 @@ function Personalinfo(props: Props) {
                                     <img className="inline-block h-20 w-20 rounded-full ring-2 ring-black" src={require("../../image/persontest.jpg")} alt={miner}></img>
                                 </div>
                                 <div className="clo-flow-1">
-                                    <p>ID: {person.ID}</p>
-                                    <p>LastName: {person.lastName}</p>
-                                    <p>FirstName: {person.firstName}</p>
-                                    <p>Job: {person.job}</p>
-                                    <div id={person.ID} className="" style={{ display: 'none' }}>
-                                        <p>Section: {person.section}</p>
-                                        <p>Time: {person.date}</p>
+                                    <p>ID: {entry.userID}</p>
+                                    <p>LastName: {entry.User.lastName}</p>
+                                    <p>FirstName: {entry.User.firstName}</p>
+                                    <p>Job: {entry.User.job}</p>
+                                    <div id={entry.userID} style={{ display: 'none' }}>
+                                        <p>Department: {entry.User.departmentName}</p>
+                                        <p>Time: {entry.LoginTime}</p>
                                         <p>Lamp Information</p>
-                                        <p>LampSN: {lamp.SN}</p>
-                                        <p>LampMAC: {lamp.MAC}</p>
-                                        <p>LampBssid: {lamp.Bssid}</p>
+                                        <p>LampSN: {entry.LampSN}</p>
+                                        <p>LampMAC: {entry.LampMAC}</p>
+                                        <p>LampBssid: {entry.LampBssid}</p>
                                         <p>Update time:</p>
-                                        <p>{lamp.updateTime}</p>
-                                        <p>ChargingStatus: {lamp.ChargingStatus?.toString()}</p>
+                                        <p>{entry.LastUpdateTime}</p>
+                                        {/* <p>ChargingStatus: {entry..ChargingStatus?.toString()}</p> */}
                                     </div>
 
                                 </div>

@@ -5,7 +5,6 @@ import { Server, Socket } from "socket.io";
 import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./wsEvents"
 import { Scanmain, OpenPort, FindCOM } from "./scanner";
 import { readTag } from "@roobuck-rnd/nfc_tools";
-import mqtt from "./mqtt";
 import { PeopleInfoTag } from "./typeguards/PeopleInfoTag";
 import { LampInfo } from "./typeguards/LampInfo";
 import { PrismaClient } from "@prisma/client";
@@ -25,8 +24,13 @@ import { remove } from "winston";
 import serverEvent from "./serverEvent/serverEvent";
 import Login from "../database/LoginList/Login";
 import getAllLoginInfo from "../database/LoginList/getAllLoginInfo";
-import resultFromLoginTable from "./typeguards/FormOfDataFromLoginTable";
-import TagBoardInfo from "./typeguards/FormOfDataFromLoginTable";
+import LoginInfo from "./typeguards/FormOfDataFromLoginTable";
+import { TagBoardInfo } from "./typeguards/TagBoardInfo";
+import checkUserID from "../database/LoginList/checkUserID";
+import checkLamp from "../database/LoginList/checkLamp";
+import updateLampInfo from "../database/LoginList/updateLampInfo";
+import Logout from "../database/LoginList/Logout";
+import { addSubscribeInMqtt, connectToMqtt, mqtt } from "./mqtt";
 
 
 async function main() {
@@ -65,10 +69,8 @@ async function main() {
 	serverEvent(wsServer, prisma);
 
 
-	let newAllShift: TagBoardInfo[] = [];
-	let newDayShift: TagBoardInfo[] = [];
-	let newNightShift: TagBoardInfo[] = [];
-
+	//Connect to Mqtt
+	const mqttClient = await connectToMqtt();
 	let loop = true;
 	let getPeopleInfo = false;
 	let getLampInfo = false;
@@ -91,23 +93,30 @@ async function main() {
 		ChargingStatus: undefined,
 		updateTime: undefined
 	}
-	setInterval(() => {
-		let updateNightShift: TagBoardInfo[] = [];
-		let updateDayShift: TagBoardInfo[] = [];
-		if (newAllShift.length > 0) {
-			newAllShift.forEach(element => {
-				if (element.isDayShift === true) {
-					updateDayShift.push(element);
-				}
-				if (element.isDayShift === false) {
-					updateNightShift.push(element);
-				}
-			});
-			// console.log("update info");
-			wsServer.emit("UpdateDayShift", updateDayShift);
-			wsServer.emit("UpdateNightShift", updateNightShift);
-		}
-	}, 10000)
+	// setInterval(async () => {
+	// 	let updateNightShift: LoginInfo[] = [];
+	// 	let updateDayShift: LoginInfo[] = [];
+	// 	const resultOfallShift = await getAllLoginInfo(prisma);
+	// 	closeDatabase(prisma);
+	// 	if (resultOfallShift != null) {
+	// 		const newAllShift: LoginInfo[] = resultOfallShift;
+	// 		for (let i = 0; i < newAllShift.length; i++) {
+	// 			if (newAllShift[i].isDayShift) {
+	// 				updateDayShift.push(newAllShift[i]);
+	// 				console.log("Dayshift length: " + updateDayShift.length)
+	// 			}
+	// 			else {
+	// 				updateNightShift.push(newAllShift[i]);
+	// 				console.log("NightShift length: " + updateNightShift.length)
+	// 			}
+	// 		}
+	// 		wsServer.emit("UpdateNightShift", updateNightShift);
+	// 		wsServer.emit("UpdateDayShift", updateDayShift);
+	// 	}
+	// 	// console.log("update info");
+	// }, 10000)
+
+
 	const serialport = await OpenPort();
 	let dataParser: DelimiterParser | undefined;
 	if (serialport) {
@@ -145,9 +154,11 @@ async function main() {
 						*get information from database
 						*/
 
-						const dataFromdatabase = await SearchingBySN(result.ID);
+						const dataFromdatabase = await SearchingBySN(prisma, result.ID);
+						const CheckID = await checkUserID(prisma, result.ID);
+						console.log("check ID: " + CheckID);
 						closeDatabase(prisma);
-						if (dataFromdatabase) {
+						if (dataFromdatabase && CheckID) {
 							const date = new Date()
 							newpeople = {
 								ID: dataFromdatabase.userID,
@@ -173,8 +184,10 @@ async function main() {
 							dataParser.removeAllListeners();
 							getPeopleInfo = true;
 						}
-						else {
-							console.log("no match info");
+						else if (!CheckID) {
+							wsServer.emit("PeopleAlreadyLogin", true);
+							getLampInfo = false;
+							getPeopleInfo = false;
 						}
 						console.log(newpeople)
 					}
@@ -188,80 +201,98 @@ async function main() {
 							updateTime: undefined
 						}
 						newLamp = result;
-						getLampInfo = true;
 						wsServer.emit("LampInfo", result);
+						const resultOfCheckLamp = await checkLamp(prisma, result.MAC, result.SN);
+						if (resultOfCheckLamp) {
+							getLampInfo = true;
+						}
+						else {
+							wsServer.emit("LampAlreadyLogin", true);
+							getLampInfo = false;
+							getPeopleInfo = false;
+						}
+
 					}
 				}
 				if (getLampInfo && getPeopleInfo) {
-					newDayShift = [];
-					newNightShift = [];
-					newAllShift.push({ User: newpeople, lamp: newLamp });
+					if (newLamp.SN) {
+						await addSubscribeInMqtt(newLamp.SN, mqttClient);
+						const lampInfo = await mqtt(mqttClient, prisma);
+						console.log("lampInfo MQTT: " + lampInfo);
+						// newLamp.Bssid = lampInfo.bssid;
+						// newLamp.ChargingStatus = lampInfo.chargingStatus;
+					}
 					const newShift: TagBoardInfo = ({ person: newpeople, lamp: newLamp });
 					await Login(newShift, prisma);
 					const resultOfallShift = await getAllLoginInfo(prisma);
-					if (resultOfallShift != null) {
-						const a: resultFromLoginTable[] = resultOfallShift;
-						for (let i = 0; i < a.length; i++) {
-							console.log(a[i].User?.Area);
-						}
-					}
 					closeDatabase(prisma);
-					for (let i = 0; i < newAllShift.length; i++) {
-						if (newAllShift[i].isDayShift) {
-							newDayShift.push(newAllShift[i]);
-							console.log("Dayshift length: " + newDayShift.length)
+					if (resultOfallShift != null) {
+						const newAllShift: LoginInfo[] = resultOfallShift;
+						let newDayShift: LoginInfo[] = [];
+						let newNightShift: LoginInfo[] = [];
+						for (let i = 0; i < newAllShift.length; i++) {
+							if (newAllShift[i].isDayShift) {
+								newDayShift.push(newAllShift[i]);
+								console.log("Dayshift length: " + newDayShift.length)
+							}
+							else {
+								newNightShift.push(newAllShift[i]);
+								console.log("NightShift length: " + newNightShift.length)
+							}
 						}
-						else {
-							newNightShift.push(newAllShift[i]);
-							console.log("NightShift length: " + newNightShift.length)
-						}
+						wsServer.emit("NightShift", newNightShift);
+						wsServer.emit("DayShift", newDayShift);
 					}
-					wsServer.emit("NightShift", newNightShift);
-					wsServer.emit("DayShift", newDayShift);
 					getLampInfo = false;
 					getPeopleInfo = false;
 				}
 				dataParser.removeAllListeners();
 			}
+
+
 			//get information from mqtt
-			// if (newAllShift.length > 0) {
-			// 	// console.log("use mqtt");
+
+			// if (resultOfallShift != null) {
+
+			// 	const newAllShift: LoginInfo[] = resultOfallShift;
 			// 	newAllShift.forEach(async element => {
-			// 		if (element.lamp.SN && (element.lamp.ChargingStatus === false || element.lamp.ChargingStatus === undefined)) {
-			// 			const resultFromMqtt = await mqtt(element.lamp.SN);
+			// 		if (element.LampSN) {
+			// 			const resultFromMqtt = await mqtt(element.LampSN.toString());
 			// 			// console.log(resultFromMqtt.bssid);
 			// 			const date = new Date()
 			// 			const updateTime = Intl.DateTimeFormat("en-UK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(date);
-			// 			element.lamp.updateTime = updateTime;
-			// 			element.lamp.Bssid = resultFromMqtt.bssid;
-			// 			element.lamp.ChargingStatus = resultFromMqtt.chargingStatus;
+			// 			console.log(element.LampSN.toString() + " isCharging: " + resultFromMqtt.chargingStatus)
+			// 			if (resultFromMqtt.chargingStatus === true) {
+			// 				await Logout(prisma, element.userID.toString());
+			// 				console.log("charging, Logout")
+			// 			}
+			// 			else {
+			// 				if (resultFromMqtt.bssid) {
+			// 					await updateLampInfo(prisma, element.userID.toString(), updateTime, resultFromMqtt.bssid);
+			// 				}
+			// 			}
 			// 		}
 			// 	});
-			// 	let updateBoolean: boolean = false;
-			// 	for (let i = 0; i < newAllShift.length; i++) {
-			// 		if (newAllShift[i].lamp.ChargingStatus === true) {
-			// 			// console.log("remove")
-			// 			newAllShift.splice(i, 1);
-			// 			i--;
-			// 			updateBoolean = true;
-			// 		}
-			// 	}
-			// 	if (updateBoolean) {
-			// 		let updateNightShift: TagBoardInfo[] = [];
-			// 		let updateDayShift: TagBoardInfo[] = [];
-			// 		newAllShift.forEach(element => {
-			// 			if (element.person.isDayShift === true) {
+			// 	closeDatabase(prisma);
+			// 	const resultOfUpdated = await getAllLoginInfo(prisma);
+			// 	closeDatabase(prisma);
+			// 	if (resultOfUpdated) {
+			// 		const resultOfUpdatedShift: LoginInfo[] = resultOfUpdated;
+			// 		let updateNightShift: LoginInfo[] = [];
+			// 		let updateDayShift: LoginInfo[] = [];
+			// 		resultOfUpdatedShift.forEach(element => {
+			// 			if (element.isDayShift === true) {
 			// 				updateDayShift.push(element);
 			// 			}
-			// 			if (element.person.isDayShift === false) {
+			// 			if (element.isDayShift === false) {
 			// 				updateNightShift.push(element);
 			// 			}
 			// 		});
-			// 		console.log("sign out");
 			// 		wsServer.emit("UpdateDayShift", updateDayShift);
 			// 		wsServer.emit("UpdateNightShift", updateNightShift);
 			// 	}
 			// }
+
 		}
 	}
 	else {

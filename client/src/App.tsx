@@ -14,7 +14,8 @@ function App() {
   socket.emit("beginTest");
   const [LampInfo, setLampInfo] = useState<RoobuckTag>();
   const [ID, setID] = useState<string>();
-
+  const [warningIsVisible, setWarningIsVisbible] = useState<boolean>(false);
+  const [warning, setWarning] = useState<string>();
   useEffect(() => {
     socket.on("test", () => {
       console.log("A")
@@ -31,6 +32,24 @@ function App() {
         setID(undefined);
       }
     })
+
+    socket.on("LampAlreadyLogin", (msg) => {
+      if (msg === true) {
+        console.log("Lamp already Login")
+        setWarningIsVisbible(true);
+        setWarning("Lamp Already Scanned!");
+      }
+    })
+    socket.on("PeopleAlreadyLogin", (msg) => {
+      if (msg === true) {
+        console.log("ID card already Login")
+        setWarningIsVisbible(true);
+        setWarning("ID Card Already Scanned!");
+      }
+    })
+
+
+
     return function socketCleanup() {
       socket.removeAllListeners("LampInfo");
       socket.removeAllListeners("PeopleID");
@@ -49,17 +68,23 @@ function App() {
           <div className="mb-0"><Clock timer={10000} /></div>
         </div>
       </div>
-      <div className="bg-black row-span-4 items-center text-center">
-        <div className="p-6 max-w-sm mx-auto bg-white rounded-xl shadow-lg  items-center space-x-4">
+      <div className="bg-black row-span-4 items-center text-center pt-4">
+        <div className="p-6 max-w-sm mx-auto bg-white rounded-xl shadow-lg  items-center space-x-4 ">
           <table>
-            <tbody>
+            <tbody className='text-center items-center w-full'>
               <tr><td>ID:</td><td>{ID}</td></tr>
               <tr><td>MAC:</td><td>{LampInfo?.MAC}</td></tr>
               <tr><td>SN:</td><td>{LampInfo?.SN}</td></tr>
             </tbody>
           </table>
         </div>
+        <div className={`${warningIsVisible ? "visible" : "invisible"} \ text-red-500 \ text-center \ bg-white\ absolute\ w-[200px]\ h-[100px] \ left-1/2 \ top-1/2
+        \ translate-x-[-50%] \ translate-y-[-50%] \ border-4 \ border-red-500` }>
+            <p >{warning}</p>
+            <button className='absolute bottom-0 left-1/2 translate-x-[-50%] translate-y-[-50%] ' onClick={()=>{setID("");setLampInfo(undefined);setWarningIsVisbible(false)}}>Close</button>
+          </div>
       </div>
+
       <div className='bg-black row-span-1' >
         <Footer version={''}></Footer>
       </div>

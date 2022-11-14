@@ -1,7 +1,7 @@
 import { resultOfUser } from "./FormOfDataFromUserDatabase";
 import { PeopleInfoTag } from "./PeopleInfoTag";
 
-interface TagBoardInfo {
+interface LoginInfo {
     User: resultOfUser | null;
     userID: String;
     LoginTime: String;
@@ -11,4 +11,4 @@ interface TagBoardInfo {
     LastUpdateTime: String | undefined | null;
     isDayShift: boolean;
 }
-export default TagBoardInfo;
+export default LoginInfo;

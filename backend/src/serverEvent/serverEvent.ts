@@ -9,6 +9,8 @@ import AddNewDepartment from "../../database/Department/AddDepartment";
 import DeleteOneDepartment from "../../database/Department/DeleteDepartment";
 import getAllDepartment from "../../database/Department/SearchDepartment";
 import UpdateDepartmentInfo from "../../database/Department/UpdateDepartment";
+import getAllLoginInfo from "../../database/LoginList/getAllLoginInfo";
+import LoginInfo from "../typeguards/FormOfDataFromLoginTable";
 function serverEvent(wsServer: Server, prisma: PrismaClient) {
 	wsServer.on("connect", (client) => {
 		console.log("connected")
@@ -70,6 +72,28 @@ function serverEvent(wsServer: Server, prisma: PrismaClient) {
 			closeDatabase(prisma);
 			if (allArea) {
 				wsServer.emit("UpdateAreaInfo", allArea);
+			}
+		})
+
+		client.on("getLoginInfo", async () => {
+			let updateNightShift: LoginInfo[] = [];
+			let updateDayShift: LoginInfo[] = [];
+			const resultOfallShift = await getAllLoginInfo(prisma);
+			closeDatabase(prisma);
+			if (resultOfallShift != null) {
+				const newAllShift: LoginInfo[] = resultOfallShift;
+				for (let i = 0; i < newAllShift.length; i++) {
+					if (newAllShift[i].isDayShift) {
+						updateDayShift.push(newAllShift[i]);
+						console.log("Dayshift length: " + updateDayShift.length)
+					}
+					else {
+						updateNightShift.push(newAllShift[i]);
+						console.log("NightShift length: " + updateNightShift.length)
+					}
+				}
+				wsServer.emit("UpdateNightShift", updateNightShift);
+				wsServer.emit("UpdateDayShift", updateDayShift);
 			}
 		})
 	})

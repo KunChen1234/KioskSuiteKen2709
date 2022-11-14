@@ -52,6 +52,8 @@ function EditPage(props: Props) {
                 absolute \
                 top-1/2 \
                 left-1/2 \
+                ranslate-x-[-50%] \
+                translate-y-[-50%] \
                 ${props.isEditVisible ? "visible" : "invisible"}`
             }>
                 <form onSubmit={edit}>

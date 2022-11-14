@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 async function closeDatabase(prisma: PrismaClient) {
     try {
         await prisma.$disconnect();
-        console.log("data closed")
+        // console.log("data closed")
     }
     catch (e) {
         console.error(e)

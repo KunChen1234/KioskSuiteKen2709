@@ -4,6 +4,7 @@ import { LampInfo } from "./typeguards/LampInfo";
 import { PeopleInfoTag } from "./typeguards/PeopleInfoTag";
 import { TagBoardInfo } from "./typeguards/TagBoardInfo";
 import AreaInfo from "./typeguards/AreaInfo";
+import LoginInfo from "./typeguards/FormOfDataFromLoginTable"
 interface ServerToClientEvents {
 	noArg: () => void;
 
@@ -11,16 +12,19 @@ interface ServerToClientEvents {
 	PeopleID: (ID: string) => void;
 	PersonalInfo: (Info: PeopleInfoTag[]) => void;
 	LampInfo: (Info: LampInfo) => void;
-	DayShift: (DayShift: TagBoardInfo[]) => void;
-	NightShift: (NightShift: TagBoardInfo[]) => void;
+	DayShift: (DayShift: LoginInfo[]) => void;
+	NightShift: (NightShift: LoginInfo[]) => void;
 	ReadyForNext: (ready: boolean) => void;
-	UpdateDayShift: (UpdateDayShift: TagBoardInfo[]) => void;
-	UpdateNightShift: (UpdateNightShift: TagBoardInfo[]) => void;
+	UpdateDayShift: (UpdateDayShift: LoginInfo[]) => void;
+	UpdateNightShift: (UpdateNightShift: LoginInfo[]) => void;
 	UpdateTime: (UpdateTIme: Date) => void;
 	UpdateDepartmentInfo: (DepartmentInfo: DepartmentInfo[]) => void;
 	UpdateAreaInfo: (AreaInfo: AreaInfo[]) => void;
 	// section: "maintanence",
 	test: (test: string) => void;
+	LampAlreadyLogin: (isScanned: boolean) => void;
+	PeopleAlreadyLogin: (isScanned: boolean) => void;
+
 
 }
 interface ClientToServerEvents {
@@ -43,6 +47,9 @@ interface ClientToServerEvents {
 	removeArea: (AreaName: string) => void;
 
 	userInputs: (userInputs: unknown) => void;
+
+	//get All Tagboard Information
+	getLoginInfo: () => void;
 }
 interface InterServerEvents {
 	ping: () => void;
