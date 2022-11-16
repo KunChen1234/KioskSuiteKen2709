@@ -3,10 +3,6 @@ import useSocket from "../../../context/socket";
 import AreaForm from "../../hooks/AreaForm";
 import useWindowDimensions from "../../hooks/windowDimensions";
 import AreaDemo from "./AreaDemo";
-interface Props {
-    isAddAreaVisible: boolean;
-    close: () => void;
-}
 function AddArea() {
     const {width,height}=useWindowDimensions();
     const socket = useSocket();

@@ -8,6 +8,11 @@ const MenuData: MenuOption[] = [{
 }, {
 	title: "Department",
 	path: "/configuration/adddepartment",
-}];
+},
+{
+	title:"Location",
+	path:"/configuration/location",
+}
+];
 
 export default MenuData;

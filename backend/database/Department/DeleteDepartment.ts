@@ -19,7 +19,7 @@ async function DeleteOneDepartment(name: string, prisma: PrismaClient): Promise<
             }
         }
     );
-    console.log(allDepartmnet);
+    // console.log(allDepartmnet);
     return new Promise((resolve) => {
         resolve(allDepartmnet);
     })

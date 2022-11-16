@@ -5,6 +5,7 @@ import { PeopleInfoTag } from "./typeguards/PeopleInfoTag";
 import { TagBoardInfo } from "./typeguards/TagBoardInfo";
 import AreaInfo from "./typeguards/AreaInfo";
 import LoginInfo from "./typeguards/FormOfDataFromLoginTable"
+import LocationInfo from "./typeguards/LocationInfo";
 interface ServerToClientEvents {
 	noArg: () => void;
 
@@ -20,6 +21,7 @@ interface ServerToClientEvents {
 	UpdateTime: (UpdateTIme: Date) => void;
 	UpdateDepartmentInfo: (DepartmentInfo: DepartmentInfo[]) => void;
 	UpdateAreaInfo: (AreaInfo: AreaInfo[]) => void;
+	UpdateLocation: (LocationInfo: LocationInfo[]) => void;
 	// section: "maintanence",
 	test: (test: string) => void;
 	LampAlreadyLogin: (isScanned: boolean) => void;
@@ -48,8 +50,17 @@ interface ClientToServerEvents {
 
 	userInputs: (userInputs: unknown) => void;
 
+	//Location and BSSID event
+	getAllLocation: () => void;
+	addNewLocation: (LocationInfo: LocationInfo) => void;
+	editLocation: (LocationInfo: LocationInfo) => void;
+	removeLocation: (locationName: string) => void;
+
 	//get All Tagboard Information
 	getLoginInfo: () => void;
+	getDayShift: () => void;
+	getNightShift: () => void;
+
 }
 interface InterServerEvents {
 	ping: () => void;

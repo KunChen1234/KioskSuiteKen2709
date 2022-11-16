@@ -1,74 +1,58 @@
 "use strict";
-import { connect, IClientOptions } from "mqtt";
+import { connect, IClientOptions, MqttClient } from "mqtt";
 import nodeConfig from "config";
 // import setLogger from "./logger";
 import { isStatusMessage } from "./typeguards/isStatusMessage";
-import { EventEmitter } from 'node:events';
+import { prisma, PrismaClient } from "@prisma/client";
+import EventEmitter from "node:events";
+import Logout from "../database/LoginList/Logout";
+import closeDatabase from "../database/closeDatabase";
 /**
  * 
  * @param sn string - Serial number of test unit
  * @returns {[chargingFormat,bssid]} Object containing booleans or nulls for test results and an object containing device props
  */
-async function mqtt(sn: string): Promise<
-    {
-        bssid: string | null;
-        chargingStatus: boolean | undefined
-    }> {
+//  sn: string
+async function connectToMqtt(): Promise<MqttClient> {
+    const mqttOptions: IClientOptions = {
+        clientId: `roobuck_test_Kiosk`,
+        username: nodeConfig.get("mqttUser"),
+        password: nodeConfig.get("mqttPass")
+    }
+    const mqttBroker = "mqtt://192.168.1.105";
+    // // logger.debug(`Attempting MQTT Connection to broker ${mqttBroker} with username ${mqttOptions.username}`)
+    const mqttClient = connect(mqttBroker, mqttOptions);
     return new Promise((resolve) => {
-        // const logger = setLogger("mqtt.js");
-        let result: {
-            bssid: string | null;
-            chargingStatus: boolean | undefined
-        } = {
+        resolve(mqttClient);
+    })
+}
+
+async function addSubscribeInMqtt(sn: string, mqttClient: MqttClient) {
+    mqttClient.subscribe([
+        `${sn}/device/status`,
+    ]);
+    console.log("add mqtt sub")
+}
+interface resultOfMqtt {
+    SN: string | null;
+    bssid: string | null;
+    chargingStatus: boolean | undefined
+}
+async function mqtt(mqttClient: MqttClient, prisma: PrismaClient): Promise<resultOfMqtt> {
+    console.log("into mqtt")
+    // const logger = setLogger("mqtt.js");
+    return new Promise((resolve) => {
+        let result: resultOfMqtt = {
+            SN: null,
             bssid: null,
             chargingStatus: undefined
         }
-        const mqttOptions: IClientOptions = {
-            clientId: `roobuck_test_Kiosk`,
-            username: nodeConfig.get("mqttUser"),
-            password: nodeConfig.get("mqttPass")
-        }
-        // console.log(mqttOptions);
-        const mqttBroker = "mqtt://192.168.1.105";
-        // console.log(`Attempting MQTT Connection to broker ${mqttBroker} with username ${mqttOptions.username}`)
-        // // logger.debug(`Attempting MQTT Connection to broker ${mqttBroker} with username ${mqttOptions.username}`)
-        const mqttClient = connect(mqttBroker, mqttOptions);
-        mqttClient.on("connect", (connack) => {
-            // console.log("connected: " + JSON.stringify(connack))
-            // logger.debug("Connected");
-            // console.log("connected")
-            mqttClient.subscribe([
-                `${sn}/device/status`,
-                `production/testing/${sn}`
-            ]);
-            mqttClient.publish(`production/testing/${sn}`, sn)
-        });
-
-        // const endTest = setTimeout(() => {
-        //     // logger.error("Timeout Reached. Test Incomplete")
-        //     console.log("Timeout Reached. Test Incomplete");
-        //     testManage.emit("endTest");
-        // }, 20 * 1000);
-        const testManage = new EventEmitter();
-        testManage.on("endTest", () => {
-            // clearTimeout(endTest);
-            testManage.removeAllListeners("endTest");
-            mqttClient.end();
-            // logger.debug("Closing MQTT Connection");
-            // logger.debug(JSON.stringify(results));
-            resolve(result);
-        });
-        let statusReceived = false;
-        let fuelOk = false;
-        mqttClient.on("message", (topic, payload) => {
-            if (topic === `production/testing/${sn}`) {
-                // logger.debug(payload.toString());
-                // console.log("tpic produnction: " + payload.toString())
-            }
+        mqttClient.on("message", async (topic, payload) => {
             // logger.debug(payload.toString());
-            // console.log(payload.toString());
+            console.log("topic: " + topic);
+            console.log(payload.toString());
+            // console.log(topic.split(/\/(.*)/s)[1]);
             if (topic.split(/\/(.*)/s)[1] === "device/status") {
-                statusReceived = true;
                 try {
                     const msg = JSON.parse(payload.toString());
                     if (isStatusMessage(msg)) {
@@ -78,14 +62,21 @@ async function mqtt(sn: string): Promise<
                             // console.log("FUEL VALUE START");
                             // console.log(msg.fuelRaw.toString());
                             // console.log("FUEL VALUE END");
-                            fuelOk = true
+                            result.SN = topic;
                             result.bssid = msg.bssid;
                             if (msg.charging === 1) {
                                 result.chargingStatus = true;
+                                // await Logout(prisma, result.SN);
+                                // closeDatabase(prisma);
                             } else if (msg.charging === 0) {
                                 result.chargingStatus = false;
                             }
-                            // console.log("DataFrom" + payload.toString());
+                            if (result.chargingStatus != undefined) {
+                                console.log(result);
+                                resolve(result);
+                            }
+                            console.log("topic" + topic);
+                            console.log("DataFrom" + payload.toString());
                         } else {
                             // console.log("FUEL VALUE START");
                             // console.log(msg.fuelRaw.toString());
@@ -101,19 +92,9 @@ async function mqtt(sn: string): Promise<
                         console.log("Error:" + err);
                     }
                 }
-                testManage.emit("endTest")
-            }
-            if (statusReceived) {
-                testManage.emit("endTest")
+                // testManage.emit("endTest")
             }
         });
     })
 }
-
-// async function a() {
-//     const a = await mqtt("cr4c7525bc785c");
-//     console.log("bssid:" + a.bssid);
-//     console.log("ChargingStatus:" + a.chargingStatus);
-// }
-// a()
-export default mqtt;
+export { mqtt, connectToMqtt, addSubscribeInMqtt };

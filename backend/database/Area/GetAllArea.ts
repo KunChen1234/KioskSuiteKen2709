@@ -9,7 +9,7 @@ async function getAllArea(prisma: PrismaClient): Promise<AreaInfo[] | undefined>
                 }
             }
         )
-        console.log(allArea);
+        // console.log(allArea);
         return new Promise((resolve) => {
             resolve(allArea);
         })

@@ -9,7 +9,13 @@ import AddNewDepartment from "../../database/Department/AddDepartment";
 import DeleteOneDepartment from "../../database/Department/DeleteDepartment";
 import getAllDepartment from "../../database/Department/SearchDepartment";
 import UpdateDepartmentInfo from "../../database/Department/UpdateDepartment";
+import addNewLocation from "../../database/Location/AddLocation";
+import DeleteOneLocation from "../../database/Location/DeleteLocation";
+import getAllLocation from "../../database/Location/SearchLocation";
+import UpdateLocation from "../../database/Location/UpdateLocation";
 import getAllLoginInfo from "../../database/LoginList/getAllLoginInfo";
+import getDayShift from "../../database/LoginList/getDayShift";
+import getNightShift from "../../database/LoginList/getNightShift";
 import LoginInfo from "../typeguards/FormOfDataFromLoginTable";
 function serverEvent(wsServer: Server, prisma: PrismaClient) {
 	wsServer.on("connect", (client) => {
@@ -18,12 +24,12 @@ function serverEvent(wsServer: Server, prisma: PrismaClient) {
 			console.log(msg);
 			const allAreaInfo = await AddArea(msg, prisma);
 			closeDatabase(prisma);
-			console.log(allAreaInfo);
 			wsServer.emit("UpdateAreaInfo", allAreaInfo);
 		})
 		client.on("addNewDepartment", async (msg) => {
 			console.log(msg);
 			const allDepartmnet = await AddNewDepartment(msg, prisma);
+			closeDatabase(prisma);
 			wsServer.emit("UpdateDepartmentInfo", allDepartmnet);
 		})
 		client.on("getDepartmentInfo", async () => {
@@ -94,6 +100,50 @@ function serverEvent(wsServer: Server, prisma: PrismaClient) {
 				}
 				wsServer.emit("UpdateNightShift", updateNightShift);
 				wsServer.emit("UpdateDayShift", updateDayShift);
+			}
+		})
+
+		client.on("getDayShift", async () => {
+			const dayShift = getDayShift(prisma);
+			closeDatabase(prisma);
+			if (dayShift != null) {
+				const resultOfDayShift = dayShift;
+				wsServer.emit("DayShit", resultOfDayShift);
+			}
+		})
+		client.on("getNightShift", async () => {
+			const nightShfit = getNightShift(prisma);
+			closeDatabase(prisma);
+			if (nightShfit != null) {
+				const resultOfNightShift = nightShfit;
+				wsServer.emit("NightShifts", resultOfNightShift);
+			}
+		})
+
+		client.on("getAllLocation", async () => {
+			const allLocation = await getAllLocation(prisma);
+			closeDatabase(prisma);
+			wsServer.emit("UpdateLocation", allLocation);
+		})
+
+		client.on("addNewLocation", async (msg) => {
+			console.log(msg);
+			const allLocation = await addNewLocation(msg, prisma);
+			wsServer.emit("UpdateLocation", allLocation);
+		})
+		client.on("editLocation", async (msg) => {
+			const allLocation = await UpdateLocation(msg, prisma);
+			closeDatabase(prisma);
+			if (allLocation) {
+				wsServer.emit("UpdateLocation", allLocation);
+			}
+		})
+
+		client.on("removeLocation", async (msg) => {
+			const allLocation = await DeleteOneLocation(msg, prisma);
+			closeDatabase(prisma);
+			if (allLocation) {
+				wsServer.emit("UpdateLocation", allLocation);
 			}
 		})
 	})

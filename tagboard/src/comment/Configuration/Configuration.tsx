@@ -4,6 +4,7 @@ import useWindowDimensions from '../hooks/windowDimensions';
 import AddArea from './Area/AddArea';
 import AddDepartment from './Department/AddDepartment';
 import ConfigurationMenu from './ConfigurationMenu/ConfigurationMenu';
+import AddLocation from './Location/location';
 function Configuration() {
     const window = useWindowDimensions();
     const body_height = window.height - 100 - 35 - 100;
@@ -17,6 +18,7 @@ function Configuration() {
                         <Route path='/' element={<AddArea />} />
                         <Route path="/addarea" element={<AddArea />} />
                         <Route path="/adddepartment" element={<AddDepartment />} />
+                        <Route path="/location" element={<AddLocation />} />
                     </Routes>
                 </div>
             </div>

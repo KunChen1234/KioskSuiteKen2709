@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import useSocket from "../../context/socket";
 import miner from '../../image/miner.png';
+import LocationInfo from '../hooks/LocationForm';
 interface Props {
     section: string;
     shiftTime: string;
@@ -19,6 +20,7 @@ interface LoginInfo {
     LampBssid: string | undefined | null;
     LastUpdateTime: string | undefined | null;
     isDayShift: boolean;
+    Location: LocationInfo | null;
 }
 interface resultOfUser {
     userID: string | null;
@@ -40,21 +42,24 @@ function Personalinfo(props: Props) {
     const socket = useSocket();
     const [DayShift, setDayShift] = useState<LoginInfo[]>();
     const [NightShift, setNightShift] = useState<LoginInfo[]>();
-    const [detailVisible, setIsDetailVisible] = useState<boolean[]>([false])
     const [photoSrc, setphotoSrc] = useState<string>();
 
     useEffect(() => {
-        socket.emit("getLoginInfo");
+        if (props.shiftTime === "DayShift") {
+            socket.emit("getDayShift");
+        }
+        else if (props.shiftTime === "NightShift") {
+            socket.emit("getNightShift");
+        }
     }, [])
+
     useEffect(() => {
         socket.on("DayShift", (msg) => {
             // console.log("dayshift get data from server");
             setDayShift(msg);
-            sessionStorage.setItem("DayShift", JSON.stringify(msg));
         });
         socket.on("NightShift", (msg) => {
             setNightShift(msg);
-            sessionStorage.setItem("NightShift", JSON.stringify(msg));
         });
 
         socket.on("UpdateDayShift", (msg) => {
@@ -74,25 +79,16 @@ function Personalinfo(props: Props) {
             socket.removeAllListeners("UpdateNightShift");
         };
     }, [DayShift, NightShift]);
-    // console.log("ID: " + IDInfo, "Lamp: " + LampInfo, "photo:" + photoSrc)
-
-    // console.log(props.shiftTime === "NightShift")
-    // console.log(NightShift)
     if (props.shiftTime === "DayShift" && DayShift) {
-        // console.log("detail= dayshift")
         detail = DayShift;
     } else if (props.shiftTime === "NightShift" && NightShift) {
         // console.log("detail= nightshift")
         detail = NightShift;
     }
-    // if(!detail)
-    // {
-    //     console.log("get data failed")
-    // }    
     if (detail) {
         return (
             <div className="grid grid-cols-9 gap-5 gap-y-5">
-                {Array.from(detail).map((entry, num) => {
+                {Array.from(detail).map((entry) => {
                     //  const [isDetailVisible, setIsDetailVisible] = useState(false);
                     //  function showDetail() {
                     //      setIsDetailVisible(true);
@@ -133,7 +129,7 @@ function Personalinfo(props: Props) {
                                         <p>Lamp Information</p>
                                         <p>LampSN: {entry.LampSN}</p>
                                         <p>LampMAC: {entry.LampMAC}</p>
-                                        <p>LampBssid: {entry.LampBssid}</p>
+                                        <p>Location: {entry.Location?.locationName}</p>
                                         <p>Update time:</p>
                                         <p>{entry.LastUpdateTime}</p>
                                         {/* <p>ChargingStatus: {entry..ChargingStatus?.toString()}</p> */}
