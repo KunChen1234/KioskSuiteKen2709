@@ -22,7 +22,7 @@ import getAllArea from "../database/Area/GetAllArea";
 import { remove } from "winston";
 import serverEvent from "./serverEvent/serverEvent";
 import Login from "../database/LoginList/Login";
-import getAllLoginInfo from "../database/LoginList/getAllLoginInfo";
+// import getAllLoginInfo from "../database/LoginList/getAllLoginInfo";
 import LoginInfo from "./typeguards/FormOfDataFromLoginTable";
 import { TagBoardInfo } from "./typeguards/TagBoardInfo";
 import checkUserID from "../database/LoginList/checkUserID";
@@ -96,22 +96,22 @@ async function main() {
 		ChargingStatus: undefined,
 		updateTime: undefined
 	}
-	setInterval(async () => {
-		let updateNightShift: LoginInfo[] = [];
-		let updateDayShift: LoginInfo[] = [];
-		const dayShift = await getDayShift(prisma);
-		const nightShfit = await getNightShift(prisma);
-		closeDatabase(prisma);
-		if (dayShift != null) {
-			updateDayShift = dayShift;
-			wsServer.emit("UpdateDayShift", dayShift);
-		}
-		if (nightShfit != null) {
-			updateNightShift = nightShfit;
-			wsServer.emit("UpdateNightShift", nightShfit);
-		}
-		// console.log("update info");
-	}, 10000)
+	// setInterval(async () => {
+	// 	let updateNightShift: LoginInfo[] = [];
+	// 	let updateDayShift: LoginInfo[] = [];
+	// 	const dayShift = await getDayShift(prisma);
+	// 	const nightShfit = await getNightShift(prisma);
+	// 	closeDatabase(prisma);
+	// 	if (dayShift != null) {
+	// 		updateDayShift = dayShift;
+	// 		wsServer.emit("UpdateDayShift", dayShift);
+	// 	}
+	// 	if (nightShfit != null) {
+	// 		updateNightShift = nightShfit;
+	// 		wsServer.emit("UpdateNightShift", nightShfit);
+	// 	}
+	// 	// console.log("update info");
+	// }, 10000)
 
 
 

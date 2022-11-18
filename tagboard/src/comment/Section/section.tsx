@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import useSocket from "../../context/socket";
 import './section.css';
 import Personalinfo from '../Personalinfo/personnalinfo';
-import AreaInfo from '../hooks/AreaForm';
+import { AreaInfoForShift } from '../hooks/AreaForm';
+import LoginInfo from '../hooks/LoginTagForm';
 interface Prop {
     shiftTime: string;
+    shift: LoginInfo[] | undefined;
 }
 function Section(prop: Prop) {
     const socket = useSocket();
-
-    const [Area, setArea] = useState<AreaInfo[]>(() => {
+    const [Area, setArea] = useState<AreaInfoForShift[]>(() => {
         const areaInfo = sessionStorage.getItem("AreaInfo");
         if (areaInfo) {
             return JSON.parse(areaInfo)
@@ -48,17 +49,20 @@ function Section(prop: Prop) {
         return (
             <div>
                 {Array.from(Area).map(entry => {
-                    return (
-                        <div className='pt-4'>
-                            {/* border: `5px solid red`, */}
-                            <div key={entry.areaName} className="board clo-flow-1 min-h-[200px] shadow-lg p-2" style={{ background: entry.areaColor }}>
-                                <p className='flex bg-white w-fit'>{entry.areaName}</p>
-                                <div className='pt-2'>
-                                    <Personalinfo section={entry.areaName} shiftTime={prop.shiftTime}></Personalinfo>
+                    if (entry.areaName && entry.areaColor) {
+                        return (
+                            <div className='pt-4'>
+                                {/* border: `5px solid red`, */}
+                                <div key={entry.areaName} className="board clo-flow-1 min-h-[200px] shadow-lg p-2" style={{ background: entry.areaColor }}>
+                                    <p className='flex bg-white w-fit'>{entry.areaName}</p>
+                                    <div className='pt-2'>
+                                        <Personalinfo section={entry.areaName} sfhit={prop.shift}></Personalinfo>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )
+                        )
+                    }
+
                 })}
 
             </div>

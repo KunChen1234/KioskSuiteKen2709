@@ -1,91 +1,27 @@
 
 import { useEffect, useState } from 'react';
 import useSocket from "../../context/socket";
-import miner from '../../image/miner.png';
+import DepartmentInfo from '../hooks/DepartmentForm';
 import LocationInfo from '../hooks/LocationForm';
+import LoginInfo from '../hooks/LoginTagForm';
 interface Props {
-    section: string;
-    shiftTime: string;
+    sfhit:LoginInfo[]|undefined;
+    section:string;
 }
-interface DepartmentInfo {
-    departmentName: string;
-    departmentColor: string;
-}
-interface LoginInfo {
-    User: resultOfUser | null;
-    userID: string;
-    LoginTime: string;
-    LampMAC: string;
-    LampSN: string;
-    LampBssid: string | undefined | null;
-    LastUpdateTime: string | undefined | null;
-    isDayShift: boolean;
-    Location: LocationInfo | null;
-}
-interface resultOfUser {
-    userID: string | null;
-    firstName: string | null;
-    lastName: string | null;
-    photo: string | null;
-    job: string | null;
-    areaName: string | null;
-    departmentName: string | null;
-    Area: AreaInfo | null;
-    Department: DepartmentInfo | null;
-}
-interface AreaInfo {
-    areaName?: string | null | undefined;
-    areaColor?: string | null | undefined;
-}
+
+
+
+
 function Personalinfo(props: Props) {
     let detail: LoginInfo[] = [];
-    const socket = useSocket();
-    const [DayShift, setDayShift] = useState<LoginInfo[]>();
-    const [NightShift, setNightShift] = useState<LoginInfo[]>();
-    const [photoSrc, setphotoSrc] = useState<string>();
+    // const socket = useSocket();
+    // const [DayShift, setDayShift] = useState<LoginInfo[]>();
+    // const [NightShift, setNightShift] = useState<LoginInfo[]>();
+    // const [photoSrc, setphotoSrc] = useState<string>();
 
-    useEffect(() => {
-        if (props.shiftTime === "DayShift") {
-            socket.emit("getDayShift");
-        }
-        else if (props.shiftTime === "NightShift") {
-            socket.emit("getNightShift");
-        }
-    }, [])
-
-    useEffect(() => {
-        socket.on("DayShift", (msg) => {
-            // console.log("dayshift get data from server");
-            setDayShift(msg);
-        });
-        socket.on("NightShift", (msg) => {
-            setNightShift(msg);
-        });
-
-        socket.on("UpdateDayShift", (msg) => {
-            setDayShift(msg);
-            console.log("updated" + msg.length)
-            sessionStorage.setItem("DayShift", JSON.stringify(msg));
-        });
-        socket.on("UpdateNightShift", (msg) => {
-            setNightShift(msg);
-            console.log("uodate Nigh shift")
-            sessionStorage.setItem("NightShift", JSON.stringify(msg));
-        });
-        return function socketCleanup() {
-            socket.removeAllListeners("DayShift");
-            socket.removeAllListeners("NightShift");
-            socket.removeAllListeners("UpdateDayShift");
-            socket.removeAllListeners("UpdateNightShift");
-        };
-    }, [DayShift, NightShift]);
-    if (props.shiftTime === "DayShift" && DayShift) {
-        detail = DayShift;
-    } else if (props.shiftTime === "NightShift" && NightShift) {
-        // console.log("detail= nightshift")
-        detail = NightShift;
-    }
-    if (detail) {
+    
+    if (props.sfhit!=undefined) {
+        detail=props.sfhit;
         return (
             <div className="grid grid-cols-9 gap-5 gap-y-5">
                 {Array.from(detail).map((entry) => {
@@ -116,7 +52,7 @@ function Personalinfo(props: Props) {
                                     }
                                 }}>
                                 <div className="clo-flow-1">
-                                    <img className="inline-block h-20 w-20 rounded-full ring-2 ring-black" src={require("../../image/persontest.jpg")} alt={miner}></img>
+                                    <img className="inline-block h-20 w-20 rounded-full ring-2 ring-black" src={"http://localhost:9080/"+entry.User.photo} alt="no photo"></img>
                                 </div>
                                 <div className="clo-flow-1">
                                     <p>ID: {entry.userID}</p>

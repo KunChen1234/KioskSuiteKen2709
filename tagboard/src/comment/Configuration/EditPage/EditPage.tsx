@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import useSocket from "../../../context/socket";
-import AreaInfo from "../../hooks/AreaForm";
+import {AreaInfoForConfiguration} from "../../hooks/AreaForm";
 import DepartmentInfo from "../../hooks/DepartmentForm";
 interface Props {
     type: string;
@@ -30,7 +30,7 @@ function EditPage(props: Props) {
             event.preventDefault();
             if (areaName && selectedColour) {
                 console.log(`Adding Area ${areaName} With Colour ${selectedColour}`);
-                const Area: AreaInfo = { areaName: areaName, areaColor: selectedColour }
+                const Area: AreaInfoForConfiguration = { areaName: areaName, areaColor: selectedColour }
                 socket.emit("editArea", Area);
                 props.closeEditPage();
             }

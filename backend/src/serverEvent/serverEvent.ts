@@ -13,7 +13,7 @@ import addNewLocation from "../../database/Location/AddLocation";
 import DeleteOneLocation from "../../database/Location/DeleteLocation";
 import getAllLocation from "../../database/Location/SearchLocation";
 import UpdateLocation from "../../database/Location/UpdateLocation";
-import getAllLoginInfo from "../../database/LoginList/getAllLoginInfo";
+// import getAllLoginInfo from "../../database/LoginList/getAllLoginInfo";
 import getDayShift from "../../database/LoginList/getDayShift";
 import getNightShift from "../../database/LoginList/getNightShift";
 import LoginInfo from "../typeguards/FormOfDataFromLoginTable";
@@ -81,38 +81,41 @@ function serverEvent(wsServer: Server, prisma: PrismaClient) {
 			}
 		})
 
-		client.on("getLoginInfo", async () => {
-			let updateNightShift: LoginInfo[] = [];
-			let updateDayShift: LoginInfo[] = [];
-			const resultOfallShift = await getAllLoginInfo(prisma);
-			closeDatabase(prisma);
-			if (resultOfallShift != null) {
-				const newAllShift: LoginInfo[] = resultOfallShift;
-				for (let i = 0; i < newAllShift.length; i++) {
-					if (newAllShift[i].isDayShift) {
-						updateDayShift.push(newAllShift[i]);
-						console.log("Dayshift length: " + updateDayShift.length)
-					}
-					else {
-						updateNightShift.push(newAllShift[i]);
-						console.log("NightShift length: " + updateNightShift.length)
-					}
-				}
-				wsServer.emit("UpdateNightShift", updateNightShift);
-				wsServer.emit("UpdateDayShift", updateDayShift);
-			}
-		})
+		// client.on("getLoginInfo", async () => {
+		// 	let updateNightShift: LoginInfo[] = [];
+		// 	let updateDayShift: LoginInfo[] = [];
+		// 	const resultOfallShift = await getAllLoginInfo(prisma);
+		// 	closeDatabase(prisma);
+		// 	if (resultOfallShift != null) {
+		// 		const newAllShift: LoginInfo[] = resultOfallShift;
+		// 		for (let i = 0; i < newAllShift.length; i++) {
+		// 			if (newAllShift[i].isDayShift) {
+		// 				updateDayShift.push(newAllShift[i]);
+		// 				console.log("Dayshift length: " + updateDayShift.length)
+		// 			}
+		// 			else {
+		// 				updateNightShift.push(newAllShift[i]);
+		// 				console.log("NightShift length: " + updateNightShift.length)
+		// 			}
+		// 		}
+		// 		wsServer.emit("UpdateNightShift", updateNightShift);
+		// 		wsServer.emit("UpdateDayShift", updateDayShift);
+		// 	}
+		// })
 
 		client.on("getDayShift", async () => {
-			const dayShift = getDayShift(prisma);
+			console.log("client need day shift");
+			const dayShift =await getDayShift(prisma);
 			closeDatabase(prisma);
 			if (dayShift != null) {
+				console.log("send to day shift page")
 				const resultOfDayShift = dayShift;
+				console.log(resultOfDayShift);
 				wsServer.emit("DayShit", resultOfDayShift);
 			}
 		})
 		client.on("getNightShift", async () => {
-			const nightShfit = getNightShift(prisma);
+			const nightShfit = await getNightShift(prisma);
 			closeDatabase(prisma);
 			if (nightShfit != null) {
 				const resultOfNightShift = nightShfit;

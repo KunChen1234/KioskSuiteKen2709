@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import useSocket from "../../../context/socket";
-import AreaForm from "../../hooks/AreaForm";
+import {AreaInfoForConfiguration} from "../../hooks/AreaForm";
 import useWindowDimensions from "../../hooks/windowDimensions";
 import AreaDemo from "./AreaDemo";
 function AddArea() {
@@ -14,7 +14,7 @@ function AddArea() {
         // dispatch({ type: AreasActionKind.ADD, payload: { newAreaName: newAreaName, newAreaColour: selectedColour } });
         console.log(`Adding Area ${newAreaName} With Colour ${selectedColour}`);
         if (newAreaName && selectedColour) {
-            const newArea: AreaForm = { areaName: newAreaName, areaColor: selectedColour }
+            const newArea: AreaInfoForConfiguration = { areaName: newAreaName, areaColor: selectedColour }
             socket.emit("addNewArea", newArea);
         }
         setNewAreaName("");

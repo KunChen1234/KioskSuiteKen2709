@@ -1,5 +1,9 @@
-interface AreaInfo {
+interface AreaInfoForConfiguration {
     areaName: string;
     areaColor: string;
 }
-export default AreaInfo;
+interface AreaInfoForShift {
+    areaName?: string | null | undefined;
+    areaColor?: string | null | undefined;
+}
+export  type {AreaInfoForShift,AreaInfoForConfiguration};
