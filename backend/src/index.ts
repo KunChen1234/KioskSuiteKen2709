@@ -1,35 +1,20 @@
 "use strict";
 import http from "http";
 import { IncomingMessage, ServerResponse } from "http";
-import { Server, Socket } from "socket.io";
-import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./wsEvents"
-import { Scanmain, OpenPort, FindCOM } from "./scanner";
+import { Server } from "socket.io";
+import { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./wsEvents";
 import { openComPort, readTag } from "@roobuck-rnd/nfc_tools";
 import { PeopleInfoTag } from "./typeguards/PeopleInfoTag";
 import { LampInfo } from "./typeguards/LampInfo";
 import { PrismaClient } from "@prisma/client";
-import { DelimiterParser } from '@serialport/parser-delimiter'
-import DepartmentInfo from "./typeguards/DepartmentInfo";
-import { exit, removeAllListeners, removeListener } from "process";
 import SearchingBySN from '../database/User/search';
-import AddArea from "../database/Area/AddNewArea";
 import closeDatabase from "../database/closeDatabase";
-import { MessageChannel } from "worker_threads";
-import AddNewDepartment from "../database/Department/AddDepartment";
-import getAllDepartment from "../database/Department/SearchDepartment";
-import DeleteOneDepartment from "../database/Department/DeleteDepartment";
-import getAllArea from "../database/Area/GetAllArea";
-import { remove } from "winston";
 import serverEvent from "./serverEvent/serverEvent";
 import Login from "../database/LoginList/Login";
-// import getAllLoginInfo from "../database/LoginList/getAllLoginInfo";
 import LoginInfo from "./typeguards/FormOfDataFromLoginTable";
 import { TagBoardInfo } from "./typeguards/TagBoardInfo";
 import checkUserID from "../database/LoginList/checkUserID";
 import checkLamp from "../database/LoginList/checkLamp";
-import updateLampInfo from "../database/LoginList/updateLampInfo";
-import Logout from "../database/LoginList/Logout";
-import mqtt from "./mqtt";
 import getDayShift from "../database/LoginList/getDayShift";
 import getNightShift from "../database/LoginList/getNightShift";
 import parser from "./parser";
@@ -37,7 +22,7 @@ import parser from "./parser";
 
 async function main() {
 	const prisma = new PrismaClient();
-	let tcpPort = 8080;
+	let tcpPort = 14000;
 	// const options = {
 	//     key: readFileSync(normalize(`${__dirname}/../.certs/key.pem`)),
 	//     cert: readFileSync(normalize(`${__dirname}/../.certs/server.crt`))
