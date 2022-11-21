@@ -81,37 +81,15 @@ function serverEvent(wsServer: Server, prisma: PrismaClient) {
 			}
 		})
 
-		// client.on("getLoginInfo", async () => {
-		// 	let updateNightShift: LoginInfo[] = [];
-		// 	let updateDayShift: LoginInfo[] = [];
-		// 	const resultOfallShift = await getAllLoginInfo(prisma);
-		// 	closeDatabase(prisma);
-		// 	if (resultOfallShift != null) {
-		// 		const newAllShift: LoginInfo[] = resultOfallShift;
-		// 		for (let i = 0; i < newAllShift.length; i++) {
-		// 			if (newAllShift[i].isDayShift) {
-		// 				updateDayShift.push(newAllShift[i]);
-		// 				console.log("Dayshift length: " + updateDayShift.length)
-		// 			}
-		// 			else {
-		// 				updateNightShift.push(newAllShift[i]);
-		// 				console.log("NightShift length: " + updateNightShift.length)
-		// 			}
-		// 		}
-		// 		wsServer.emit("UpdateNightShift", updateNightShift);
-		// 		wsServer.emit("UpdateDayShift", updateDayShift);
-		// 	}
-		// })
-
 		client.on("getDayShift", async () => {
 			console.log("client need day shift");
-			const dayShift =await getDayShift(prisma);
+			const dayShift = await getDayShift(prisma);
 			closeDatabase(prisma);
 			if (dayShift != null) {
 				console.log("send to day shift page")
 				const resultOfDayShift = dayShift;
 				console.log(resultOfDayShift);
-				wsServer.emit("DayShit", resultOfDayShift);
+				wsServer.emit("DayShifts", resultOfDayShift);
 			}
 		})
 		client.on("getNightShift", async () => {

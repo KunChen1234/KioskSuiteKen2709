@@ -96,22 +96,25 @@ async function main() {
 		ChargingStatus: undefined,
 		updateTime: undefined
 	}
-	// setInterval(async () => {
-	// 	let updateNightShift: LoginInfo[] = [];
-	// 	let updateDayShift: LoginInfo[] = [];
-	// 	const dayShift = await getDayShift(prisma);
-	// 	const nightShfit = await getNightShift(prisma);
-	// 	closeDatabase(prisma);
-	// 	if (dayShift != null) {
-	// 		updateDayShift = dayShift;
-	// 		wsServer.emit("UpdateDayShift", dayShift);
-	// 	}
-	// 	if (nightShfit != null) {
-	// 		updateNightShift = nightShfit;
-	// 		wsServer.emit("UpdateNightShift", nightShfit);
-	// 	}
-	// 	// console.log("update info");
-	// }, 10000)
+	setInterval(async () => {
+		let updateNightShift: LoginInfo[] = [];
+		let updateDayShift: LoginInfo[] = [];
+		const date = new Date();
+		// const updateTime = Intl.DateTimeFormat("en-UK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(date);
+
+		const dayShift = await getDayShift(prisma);
+		const nightShfit = await getNightShift(prisma);
+		closeDatabase(prisma);
+		if (dayShift != null) {
+			updateDayShift = dayShift;
+			wsServer.emit("UpdateDayShift", dayShift);
+		}
+		if (nightShfit != null) {
+			updateNightShift = nightShfit;
+			wsServer.emit("UpdateNightShift", nightShfit);
+		}
+		// console.log("update info");
+	}, 10000)
 
 
 
@@ -177,6 +180,9 @@ async function main() {
 								newpeople.isDayShift = false;
 							}
 						}
+						else {
+							console.log("Do not have Login time!")
+						}
 						dataParser.removeAllListeners();
 						getPeopleInfo = true;
 					}
@@ -185,6 +191,8 @@ async function main() {
 						getLampInfo = false;
 						getPeopleInfo = false;
 
+					} else {
+						console.log("Get data from database failed!");
 					}
 					console.log(newpeople)
 				}
@@ -213,19 +221,19 @@ async function main() {
 				}
 			}
 			if (getLampInfo && getPeopleInfo) {
-				if (newLamp.SN) {
-					const resultFromMqtt = await mqtt(newLamp.SN,);
-					newLamp.Bssid = resultFromMqtt.bssid;
-				} else {
-					console.log("Can not get Lamp Serial Number");
-				}
+				// if (newLamp.SN) {
+				// 	const resultFromMqtt = await mqtt(newLamp.SN,);
+				// 	newLamp.Bssid = resultFromMqtt.bssid;
+				// } else {
+				// 	console.log("Can not get Lamp Serial Number");
+				// }
 				const newShift: TagBoardInfo = ({ person: newpeople, lamp: newLamp });
 				await Login(newShift, prisma);
 				const dayShift = await getDayShift(prisma);
 				const nightShfit = await getNightShift(prisma);
 				closeDatabase(prisma);
 				if (dayShift != null) {
-					wsServer.emit("DayShift", dayShift);
+					wsServer.emit("DayShifts", dayShift);
 				}
 				if (nightShfit != null) {
 					wsServer.emit("NightShift", nightShfit);

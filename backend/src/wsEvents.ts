@@ -13,7 +13,7 @@ interface ServerToClientEvents {
 	PeopleID: (ID: string) => void;
 	PersonalInfo: (Info: PeopleInfoTag[]) => void;
 	LampInfo: (Info: LampInfo) => void;
-	DayShift: (DayShift: LoginInfo[]) => void;
+	DayShifts: (DayShift: LoginInfo[]) => void;
 	NightShift: (NightShift: LoginInfo[]) => void;
 	ReadyForNext: (ready: boolean) => void;
 	UpdateDayShift: (UpdateDayShift: LoginInfo[]) => void;

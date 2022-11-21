@@ -12,7 +12,7 @@ function NightShift() {
     useEffect(() => {
         socket.emit("getDayShift");
         console.log("send day shift request")
-        socket.on("DayShift", (msg) => {
+        socket.on("DayShifts", (msg) => {
             // console.log("dayshift get data from server");
             console.log("getDayShfit");
             setdayShiftdetail(msg);

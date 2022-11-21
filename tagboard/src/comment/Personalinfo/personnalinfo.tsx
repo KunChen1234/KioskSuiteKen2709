@@ -61,7 +61,7 @@ function Personalinfo(props: Props) {
                                     <p>Job: {entry.User.job}</p>
                                     <div id={entry.userID} style={{ display: 'none' }}>
                                         <p>Department: {entry.User.departmentName}</p>
-                                        <p>Time: {entry.LoginTime}</p>
+                                        <p>Login Time: {entry.LoginTime}</p>
                                         <p>Lamp Information</p>
                                         <p>LampSN: {entry.LampSN}</p>
                                         <p>LampMAC: {entry.LampMAC}</p>
