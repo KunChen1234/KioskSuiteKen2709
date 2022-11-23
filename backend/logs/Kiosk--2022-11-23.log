@@ -1,0 +1,18 @@
+{
+  message: 'a',
+  level: 'info',
+  service: 'app.js',
+  timestamp: '2022-11-23T05:47:11.010Z'
+}
+{
+  message: 'a',
+  level: 'info',
+  service: 'app.js',
+  timestamp: '2022-11-23T05:49:55.867Z'
+}
+{
+  message: 'a',
+  level: 'info',
+  service: 'app.js',
+  timestamp: '2022-11-23T05:51:34.922Z'
+}

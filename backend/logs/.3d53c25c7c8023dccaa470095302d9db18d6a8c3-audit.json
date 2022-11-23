@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "E:\\KunChen\\KioskSuiteKen2709\\backend\\logs\\.3d53c25c7c8023dccaa470095302d9db18d6a8c3-audit.json",
+    "files": [
+        {
+            "date": 1669182430987,
+            "name": "E:\\KunChen\\KioskSuiteKen2709\\backend\\logs\\Kiosk--2022-11-23.log",
+            "hash": "1ffec58266e857b3d6daf7f539b36830bfc7a4151deabef958ac5218904da292"
+        }
+    ],
+    "hashType": "sha256"
+}

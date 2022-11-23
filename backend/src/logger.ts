@@ -12,7 +12,7 @@ import nodeConfig from "config";
 function setLogger(): winston.Logger {
 
     const env = process.env.NODE_ENV;
-    console.log(env);
+    console.log("env" + env);
 
     const logDir = normalize(`${__dirname}/../logs`);
     if (!existsSync(logDir)) {
@@ -20,7 +20,7 @@ function setLogger(): winston.Logger {
     }
 
     const infoTransport: DailyRotateFile = new DailyRotateFile({
-        filename: `${logDir}/qa_testing_server-${nodeConfig.has("shortId") ? nodeConfig.get("shortId") : ""}-%DATE%.log`,
+        filename: `${logDir}/Kiosk-${nodeConfig.has("shortId") ? nodeConfig.get("shortId") : ""}-%DATE%.log`,
         datePattern: "YYYY-MM-DD",
         zippedArchive: true,
         maxSize: "20m",
