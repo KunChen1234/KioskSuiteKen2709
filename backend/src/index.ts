@@ -18,11 +18,14 @@ import checkLamp from "../database/LoginList/checkLamp";
 import getDayShift from "../database/LoginList/getDayShift";
 import getNightShift from "../database/LoginList/getNightShift";
 import parser from "./parser";
+import { getEventListeners } from "events";
+import { listenerCount, listeners, removeAllListeners } from "process";
+import { getHeapSpaceStatistics } from "node:v8";
 
 
 async function main() {
 	const prisma = new PrismaClient();
-	let tcpPort = 14000;
+	let tcpPort = 8080;
 	// const options = {
 	//     key: readFileSync(normalize(`${__dirname}/../.certs/key.pem`)),
 	//     cert: readFileSync(normalize(`${__dirname}/../.certs/server.crt`))
@@ -30,14 +33,14 @@ async function main() {
 	function httpCB(req: IncomingMessage, res: ServerResponse) {
 		// Callback for receiving an HTTP request
 		// Default behaviour is to return error code 404
-		console.log(`${new Date()} Received request for ${req.url}`);
+		// console.log(`${new Date()} Received request for ${req.url}`);
 		res.writeHead(404);
 		res.end();
 	}
 
 	const httpServer = http.createServer(httpCB);
 	httpServer.listen(tcpPort, () => {
-		console.log(`Server is listening on port ${tcpPort}`);
+		// console.log(`Server is listening on port ${tcpPort}`);
 	});
 	const wsServer = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer,
 		{
@@ -53,16 +56,16 @@ async function main() {
 	);
 
 	//Comunicate between client and server
-	serverEvent(wsServer, prisma);
+	// serverEvent(wsServer, prisma);
 
 
 	//Connect to Mqtt
 
 
 	let loop = true;
-	let getPeopleInfo = false;
-	let getLampInfo = false;
-	let newpeople: PeopleInfoTag = {
+	var getPeopleInfo = false;
+	var getLampInfo = false;
+	var newpeople: PeopleInfoTag = {
 		ID: null,
 		section: null,
 		lastName: null,
@@ -73,8 +76,8 @@ async function main() {
 		date: undefined,
 		time: undefined,
 		isDayShift: undefined
-	}
-	let newLamp: LampInfo = {
+	};
+	var newLamp: LampInfo = {
 		MAC: undefined,
 		SN: undefined,
 		Bssid: undefined,
@@ -101,50 +104,39 @@ async function main() {
 		// console.log("update info");
 	}, 10000)
 
-
-
-
-	// const serialport = await OpenPort();
-	// let dataParser: DelimiterParser | undefined;
-	// if (serialport) {
-	// 	dataParser = serialport.pipe(new DelimiterParser({ delimiter: "\r", includeDelimiter: false }));
-	// }
-	// const { result } = await FindCOM();
-
 	const serialport = await openComPort();
 	const path = serialport[0];
 	const dataParser = serialport[1];
 	while (loop) {
 		if (dataParser) {
-			const resultOfScanner = await readTag(path, dataParser);
+			var resultOfScanner = await readTag(path, dataParser, false);
 			if (resultOfScanner) {
-				const result = JSON.parse(parser(resultOfScanner));
+				var result = JSON.parse(parser(resultOfScanner));
 				if (result.ID) {
-					console.log("people")
-					newpeople = {
-						ID: undefined,
-						section: undefined,
-						lastName: undefined,
-						firstName: undefined,
-						department: undefined,
-						photo: undefined,
-						job: undefined,
-						date: undefined,
-						time: undefined,
-						isDayShift: undefined
-					}
+					// console.log("people")
+					// var newpeople: PeopleInfoTag = {
+					// 	ID: undefined,
+					// 	section: undefined,
+					// 	lastName: undefined,
+					// 	firstName: undefined,
+					// 	department: undefined,
+					// 	photo: undefined,
+					// 	job: undefined,
+					// 	date: undefined,
+					// 	time: undefined,
+					// 	isDayShift: undefined
+					// }
 					wsServer.emit("PeopleID", result.ID);
 					/*
 					*get information from database
 					*/
 
-					const dataFromdatabase = await SearchingBySN(prisma, result.ID);
-					const CheckID = await checkUserID(prisma, result.ID);
-					console.log("check ID: " + CheckID);
-					closeDatabase(prisma);
-					if (dataFromdatabase && CheckID) {
-						const date = new Date()
-						newpeople = {
+					var dataFromdatabase = await SearchingBySN(prisma, result.ID);
+					await closeDatabase(prisma);
+					//  && CheckID
+					if (dataFromdatabase) {
+						var date = new Date()
+						var newpeople: PeopleInfoTag = {
 							ID: dataFromdatabase.userID,
 							section: dataFromdatabase.areaName,
 							lastName: dataFromdatabase.lastName,
@@ -158,7 +150,7 @@ async function main() {
 						}
 						if (newpeople.time) {
 							if (newpeople.time >= "04:00:00" && newpeople.time <= "16:00:00") {
-								console.log("dayshift")
+								// console.log("dayshift")
 								newpeople.isDayShift = true;
 							}
 							else {
@@ -166,70 +158,69 @@ async function main() {
 							}
 						}
 						else {
-							console.log("Do not have Login time!")
+							// console.log("Do not have Login time!")
 						}
 						dataParser.removeAllListeners();
-						getPeopleInfo = true;
+						var getPeopleInfo = true;
 					}
-					else if (!CheckID) {
-						wsServer.emit("PeopleAlreadyLogin", true);
-						getLampInfo = false;
-						getPeopleInfo = false;
+					// else if (!CheckID) {
+					// 	wsServer.emit("PeopleAlreadyLogin", true);
+					// 	getLampInfo = false;
+					// 	getPeopleInfo = false;
 
-					} else {
-						console.log("Get data from database failed!");
+					// } 
+					else {
+						// console.log("Get data from database failed!");
 					}
-					console.log(newpeople)
+					// console.log(newpeople)
 				}
 				if (result.MAC && result.SN) {
-					console.log("lamp");
-					newLamp = {
-						MAC: undefined,
-						SN: undefined,
-						Bssid: undefined,
-						ChargingStatus: undefined,
-						updateTime: undefined
-					}
-					newLamp = result;
-					console.log(newLamp);
+					// console.log("lamp");
+
+					// var newLamp: LampInfo= {
+					// 	MAC: undefined,
+					// 	SN: undefined,
+					// 	Bssid: undefined,
+					// 	ChargingStatus: undefined,
+					// 	updateTime: undefined
+					// }
+					var newLamp: LampInfo = result;
+					// (newLamp);
 					wsServer.emit("LampInfo", result);
-					const resultOfCheckLamp = await checkLamp(prisma, result.MAC, result.SN);
+					var resultOfCheckLamp = await checkLamp(prisma, result.MAC, result.SN);
 					if (resultOfCheckLamp) {
-						getLampInfo = true;
+						var getLampInfo = true;
 					}
 					else {
 						wsServer.emit("LampAlreadyLogin", true);
-						getLampInfo = false;
-						getPeopleInfo = false;
-					}
 
+						var getLampInfo = false;
+						var getPeopleInfo = false;
+					}
 				}
 			}
 			if (getLampInfo && getPeopleInfo) {
-				// if (newLamp.SN) {
-				// 	const resultFromMqtt = await mqtt(newLamp.SN,);
-				// 	newLamp.Bssid = resultFromMqtt.bssid;
-				// } else {
-				// 	console.log("Can not get Lamp Serial Number");
-				// }
-				const newShift: TagBoardInfo = ({ person: newpeople, lamp: newLamp });
-				await Login(newShift, prisma);
-				const dayShift = await getDayShift(prisma);
-				const nightShfit = await getNightShift(prisma);
-				closeDatabase(prisma);
-				if (dayShift != null) {
-					wsServer.emit("DayShifts", dayShift);
-				}
-				if (nightShfit != null) {
-					wsServer.emit("NightShift", nightShfit);
+				if (newLamp && newpeople) {
+					var newShift: TagBoardInfo = ({ person: newpeople, lamp: newLamp });
+					await Login(newShift, prisma);
+					var dayShift = await getDayShift(prisma);
+					var nightShfit = await getNightShift(prisma);
+					closeDatabase(prisma);
+					if (dayShift != null) {
+						wsServer.emit("DayShifts", dayShift);
+					}
+					if (nightShfit != null) {
+						wsServer.emit("NightShift", nightShfit);
+					}
 				}
 				getLampInfo = false;
 				getPeopleInfo = false;
 			}
+			console.table(getHeapSpaceStatistics());
 			dataParser.removeAllListeners();
 		}
-
-
+		// console.log(listeners("beforeExit"))
+		console.log(process.memoryUsage().heapUsed);
 	}
 }
 

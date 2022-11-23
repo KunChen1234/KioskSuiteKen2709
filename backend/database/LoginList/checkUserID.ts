@@ -14,7 +14,7 @@ async function checkUserID(prisma: PrismaClient, userID: string): Promise<boolea
     return new Promise((resolve) => {
         if (data.length > 0) {
             resolve(false);
-            console.log(data);
+            // console.log(data);
         }
         else {
             resolve(true);

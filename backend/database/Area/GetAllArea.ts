@@ -15,8 +15,8 @@ async function getAllArea(prisma: PrismaClient): Promise<AreaInfo[] | undefined>
         })
     }
     catch (e) {
-        console.log("can not find data from area table");
-        console.log(e);
+        // console.log("can not find data from area table");
+        // console.log(e);
     }
 }
 export default getAllArea;

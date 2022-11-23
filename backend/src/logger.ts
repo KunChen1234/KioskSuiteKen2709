@@ -9,17 +9,18 @@ import nodeConfig from "config";
  * Set up winston logger to print to file. If NODE_ENV = development debug will print to console.
  * @returns {winston.Logger} logger object to log to files and console
  */
-function setLogger(name: string): winston.Logger {
+function setLogger(): winston.Logger {
 
     const env = process.env.NODE_ENV;
+    console.log(env);
 
-    const logDir = normalize(`${__dirname}/../../logs`);
+    const logDir = normalize(`${__dirname}/../logs`);
     if (!existsSync(logDir)) {
         mkdirSync(logDir);
     }
 
     const infoTransport: DailyRotateFile = new DailyRotateFile({
-        filename: `${logDir}/qa_testing_server-${nodeConfig.get("shortId") || ""}-%DATE%.log`,
+        filename: `${logDir}/qa_testing_server-${nodeConfig.has("shortId") ? nodeConfig.get("shortId") : ""}-%DATE%.log`,
         datePattern: "YYYY-MM-DD",
         zippedArchive: true,
         maxSize: "20m",
@@ -28,16 +29,16 @@ function setLogger(name: string): winston.Logger {
         // "level": env === "development" ? "debug" : "info"
     });
 
-    const logLevel = env === "development" ? "debug" : "info";
+    // const logLevel = env === "development" ? "debug" : "info";
 
     const logger = createLogger({
-        // level: "info",
-        level: logLevel,
+        level: "info",
+        // level: logLevel,
         format: format.combine(
             format.timestamp(),
             format.prettyPrint()
         ),
-        defaultMeta: { service: name },
+        defaultMeta: { service: "app.js" },
         transports: [
             infoTransport
         ],
@@ -48,7 +49,6 @@ function setLogger(name: string): winston.Logger {
     // `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
 
     if (env === "development") {
-        console.log("Making console logger");
         logger.add(new winston.transports.Console({
             format: winston.format.simple(),
             consoleWarnLevels: ["debug"]

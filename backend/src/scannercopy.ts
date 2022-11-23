@@ -53,7 +53,7 @@ async function readTag(comPort: SerialPort<AutoDetectTypes>, dataParser: Delimit
                     await command(comPort, "0407646004F401F401\r", dataParser); // long low Beep
                     await command(comPort, "041207\r", dataParser);
                 }
-                console.log("Failed to Read Tag data");
+                // console.log("Failed to Read Tag data");
                 return null;
             }
         }
@@ -87,7 +87,7 @@ async function OpenPort(): Promise<SerialPort | undefined> {
         const port = new SerialPort({ path: path, baudRate: 9600, autoOpen: true }, (err: Error | null | undefined) => {
             if (err) {
                 console.error(err.message);
-                console.log("Unable to open serial port, exiting");
+                // console.log("Unable to open serial port, exiting");
                 process.exit(1);
             }
         });
@@ -118,7 +118,7 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
         }
         else if (data && Buffer.isBuffer(data) && data.subarray(0, 4).toString() === "0001" && data.length > 4) {
             const tagData = await readTag(port, dataParser);
-            console.log("tagData: " + tagData);
+            // console.log("tagData: " + tagData);
             if (tagData) {
                 const start = tagData.indexOf("\{")
                 const end = tagData.indexOf("\}")
@@ -129,8 +129,8 @@ async function Scanmain(Server: Server<ClientToServerEvents, ServerToClientEvent
             }
         }
         else {
-            console.log("scan failed");
-            console.log("data: " + data + "isBuffer: " + Buffer.isBuffer(data) + "data.subarray: " + data.subarray(0, 4).toString() + "length: " + data.length);
+            // console.log("scan failed");
+            // console.log("data: " + data + "isBuffer: " + Buffer.isBuffer(data) + "data.subarray: " + data.subarray(0, 4).toString() + "length: " + data.length);
         }
         dataParser.removeAllListeners();
     }

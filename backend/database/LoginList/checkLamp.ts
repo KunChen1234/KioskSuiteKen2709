@@ -15,7 +15,7 @@ async function checkLamp(prisma: PrismaClient, LampMAC: string, LampSN: string):
     return new Promise((resolve) => {
         if (data.length > 0) {
             resolve(false);
-            console.log(data);
+            // console.log(data);
         }
         else {
             resolve(true);

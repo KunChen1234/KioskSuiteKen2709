@@ -12,7 +12,7 @@ function AddArea() {
     function addNewArea(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
         // dispatch({ type: AreasActionKind.ADD, payload: { newAreaName: newAreaName, newAreaColour: selectedColour } });
-        console.log(`Adding Area ${newAreaName} With Colour ${selectedColour}`);
+        // console.log(`Adding Area ${newAreaName} With Colour ${selectedColour}`);
         if (newAreaName && selectedColour) {
             const newArea: AreaInfoForConfiguration = { areaName: newAreaName, areaColor: selectedColour }
             socket.emit("addNewArea", newArea);

@@ -10,22 +10,14 @@ interface Prop {
 }
 function Section(prop: Prop) {
     const socket = useSocket();
-    const [Area, setArea] = useState<AreaInfoForShift[]>(() => {
-        const areaInfo = sessionStorage.getItem("AreaInfo");
-        if (areaInfo) {
-            return JSON.parse(areaInfo)
-        } else {
-            return null;
-        }
-    });
+    const [Area, setArea] = useState<AreaInfoForShift[]>();
     useEffect(() => {
         socket.emit("getAllArea");
     }, [])
     useEffect(() => {
         socket.on("UpdateAreaInfo", (msg) => {
-            console.log(msg);
+            // console.log(msg);
             setArea(msg);
-            sessionStorage.setItem("AreaInfo", JSON.stringify(msg));
         })
         return function socketCleanup() {
             socket.removeAllListeners("UpdateAreaInfo");

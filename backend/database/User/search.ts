@@ -17,7 +17,7 @@ async function SearchingBySN(prisma:PrismaClient,number: string): Promise<result
         return new Promise((resolve) => {
             if (user) {
                 const data: resultOfUser = user;
-                console.log(data);
+                // console.log(data);
                 resolve(data);
             }
             else {
@@ -32,8 +32,8 @@ async function SearchingBySN(prisma:PrismaClient,number: string): Promise<result
 
     }
     catch (e) {
-        console.log("can not find data");
-        console.log(e);
+        // console.log("can not find data");
+        // console.log(e);
     }
     return null;
 }

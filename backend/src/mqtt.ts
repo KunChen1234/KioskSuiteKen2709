@@ -93,12 +93,12 @@ async function mqtt(sn: string): Promise<
                             // fuelOk = false;
                         }
                     } else {
-                        console.log("failed");
+                        // console.log("failed");
                         // Fail Condition
                     }
                 } catch (err) {
                     if (err instanceof Error) {
-                        console.log("Error:" + err);
+                        // console.log("Error:" + err);
                     }
                 }
                 testManage.emit("endTest")
@@ -110,10 +110,10 @@ async function mqtt(sn: string): Promise<
     })
 }
 
-// async function a() {
-//     const a = await mqtt("cr4c7525bc785c");
-//     console.log("bssid:" + a.bssid);
-//     console.log("ChargingStatus:" + a.chargingStatus);
-// }
-// a()
-export default mqtt;
+async function a() {
+    const a = await mqtt("cr4c7525bc785c");
+    console.log("bssid:" + a.bssid);
+    console.log("ChargingStatus:" + a.chargingStatus);
+}
+a()
+// export default mqtt;

@@ -16,8 +16,8 @@ async function getAllLocation(prisma: PrismaClient): Promise<LocationInfo[] | un
         })
     }
     catch (e) {
-        console.log("can not find data from Location table");
-        console.log(e);
+        // console.log("can not find data from Location table");
+        // console.log(e);
     }
 }
 export default getAllLocation;

@@ -17,7 +17,7 @@ function getIp(): string {
         }
     }
     let nwInterface: string;
-    console.log(nodeConfig.get("nwInterface"));
+    // console.log(nodeConfig.get("nwInterface"));
     if (nodeConfig.get("nwInterface") && typeof nodeConfig.get("nwInterface") === "string") {
         nwInterface = nodeConfig.get("nwInterface");
     } else {

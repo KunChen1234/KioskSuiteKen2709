@@ -9,7 +9,7 @@ function AddDepartment() {
     function addNewDepartment(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
         // dispatch({ type: AreasActionKind.ADD, payload: { newAreaName: newAreaName, newAreaColour: selectedColour } });
-        console.log(`Adding Area ${newDepartmentName} With Colour ${selectedColour}`);
+        // console.log(`Adding Area ${newDepartmentName} With Colour ${selectedColour}`);
         if (newDepartmentName && selectedColour) {
             const newDepartment: DepartmentInfo = { departmentName: newDepartmentName, departmentColor: selectedColour }
             socket.emit("addNewDepartment", newDepartment);

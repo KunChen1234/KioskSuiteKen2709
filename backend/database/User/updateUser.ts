@@ -10,7 +10,7 @@ async function updateUser() {
         data: { photo: "miner2.jpg" }
     })
     const a = await prisma.user.findMany();
-    console.log(a);
+    // console.log(a);
 }
 updateUser()
     .then(async () => {

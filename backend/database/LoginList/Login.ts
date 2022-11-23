@@ -3,7 +3,7 @@ import { TagBoardInfo } from "../../src/typeguards/TagBoardInfo";
 
 async function Login(tag: TagBoardInfo, prisma: PrismaClient) {
     if (tag.person.ID && tag.lamp.MAC && tag.lamp.SN && tag.person.date && tag.person.isDayShift != null) {
-        console.log("start to save")
+        // console.log("start to save")
         await prisma.loginInfo.create(
             {
                 data: {

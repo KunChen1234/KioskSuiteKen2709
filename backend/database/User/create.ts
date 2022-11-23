@@ -14,7 +14,7 @@ async function CreateData() {
     })
     const a = await prisma.user.findMany({
     })
-    console.log(a);
+    // console.log(a);
 }
 CreateData()
     .then(async () => {

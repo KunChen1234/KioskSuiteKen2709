@@ -24,7 +24,7 @@ function DepartmentDemo() {
     }, [])
     useEffect(() => {
         socket.on("UpdateDepartmentInfo", (msg) => {
-            console.log(msg + "department");
+            // console.log(msg + "department");
             setDepartment(msg);
         })
         return function socketCleanup() {

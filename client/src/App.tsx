@@ -35,14 +35,14 @@ function App() {
 
     socket.on("LampAlreadyLogin", (msg) => {
       if (msg === true) {
-        console.log("Lamp already Login")
+        // console.log("Lamp already Login")
         setWarningIsVisbible(true);
         setWarning("Lamp Already Scanned!");
       }
     })
     socket.on("PeopleAlreadyLogin", (msg) => {
       if (msg === true) {
-        console.log("ID card already Login")
+        // console.log("ID card already Login")
         setWarningIsVisbible(true);
         setWarning("ID Card Already Scanned!");
       }

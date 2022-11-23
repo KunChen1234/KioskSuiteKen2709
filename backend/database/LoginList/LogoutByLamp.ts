@@ -7,6 +7,6 @@ async function Logout(prisma: PrismaClient, LampSN: string) {
         }
     });
     const a = await prisma.loginInfo.findMany();
-    console.log(a);
+    // console.log(a);
 }
 export default Logout;

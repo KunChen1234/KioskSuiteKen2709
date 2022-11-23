@@ -3,8 +3,8 @@ import AreaInfo from '../../src/typeguards/AreaInfo';
 
 //Add a new area and get all area info
 async function AddArea(newArea: AreaInfo, prisma: PrismaClient): Promise<AreaInfo[]> {
-  console.log(newArea.areaName + "database");
-  console.log(newArea.areaColor + "database");
+  // console.log(newArea.areaName + "database");
+  // console.log(newArea.areaColor + "database");
   try {
     await prisma.area.create({
       data: {

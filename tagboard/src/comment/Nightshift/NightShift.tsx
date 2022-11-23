@@ -19,7 +19,7 @@ function NightShift() {
         });
         socket.on("UpdateNightShift", (msg) => {
             setNightShiftdetail(msg);
-            console.log("uodate Nigh shift")
+            // console.log("uodate Nigh shift")
         });
         return function socketCleanup() {
             socket.removeAllListeners("NightShift");

@@ -16,8 +16,8 @@ async function getAllDepartment(prisma: PrismaClient): Promise<DepartmentInfo[] 
         })
     }
     catch (e) {
-        console.log("can not find data from department table");
-        console.log(e);
+        // console.log("can not find data from department table");
+        // console.log(e);
     }
 }
 export default getAllDepartment;

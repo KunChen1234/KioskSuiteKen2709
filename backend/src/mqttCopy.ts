@@ -31,7 +31,7 @@ async function addSubscribeInMqtt(sn: string, mqttClient: MqttClient) {
     mqttClient.subscribe([
         `${sn}/device/status`,
     ]);
-    console.log("add mqtt sub")
+    // console.log("add mqtt sub")
 }
 interface resultOfMqtt {
     SN: string | null;
@@ -39,7 +39,7 @@ interface resultOfMqtt {
     chargingStatus: boolean | undefined
 }
 async function mqtt(mqttClient: MqttClient, prisma: PrismaClient): Promise<resultOfMqtt> {
-    console.log("into mqtt")
+    // console.log("into mqtt")
     // const logger = setLogger("mqtt.js");
     return new Promise((resolve) => {
         let result: resultOfMqtt = {
@@ -49,8 +49,8 @@ async function mqtt(mqttClient: MqttClient, prisma: PrismaClient): Promise<resul
         }
         mqttClient.on("message", async (topic, payload) => {
             // logger.debug(payload.toString());
-            console.log("topic: " + topic);
-            console.log(payload.toString());
+            // console.log("topic: " + topic);
+            // console.log(payload.toString());
             // console.log(topic.split(/\/(.*)/s)[1]);
             if (topic.split(/\/(.*)/s)[1] === "device/status") {
                 try {
@@ -72,11 +72,11 @@ async function mqtt(mqttClient: MqttClient, prisma: PrismaClient): Promise<resul
                                 result.chargingStatus = false;
                             }
                             if (result.chargingStatus != undefined) {
-                                console.log(result);
+                                // console.log(result);
                                 resolve(result);
                             }
-                            console.log("topic" + topic);
-                            console.log("DataFrom" + payload.toString());
+                            // console.log("topic" + topic);
+                            // console.log("DataFrom" + payload.toString());
                         } else {
                             // console.log("FUEL VALUE START");
                             // console.log(msg.fuelRaw.toString());
@@ -84,12 +84,12 @@ async function mqtt(mqttClient: MqttClient, prisma: PrismaClient): Promise<resul
                             // fuelOk = false;
                         }
                     } else {
-                        console.log("failed");
+                        // console.log("failed");
                         // Fail Condition
                     }
                 } catch (err) {
                     if (err instanceof Error) {
-                        console.log("Error:" + err);
+                        // console.log("Error:" + err);
                     }
                 }
                 // testManage.emit("endTest")

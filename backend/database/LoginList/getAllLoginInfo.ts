@@ -54,7 +54,7 @@ async function getAllLoginInfoForTest() {
             }
         }
     });
-    console.log(data);
+    // console.log(data);
 }
 getAllLoginInfoForTest().then(async () => {
     await prisma.$disconnect()

@@ -25,11 +25,11 @@ function EditPage(props: Props) {
         }
         if (props.type === "Area") {
             const areaName = props.name;
-            console.log(areaName);
-            console.log(selectedColour);
+            // console.log(areaName);
+            // console.log(selectedColour);
             event.preventDefault();
             if (areaName && selectedColour) {
-                console.log(`Adding Area ${areaName} With Colour ${selectedColour}`);
+                // console.log(`Adding Area ${areaName} With Colour ${selectedColour}`);
                 const Area: AreaInfoForConfiguration = { areaName: areaName, areaColor: selectedColour }
                 socket.emit("editArea", Area);
                 props.closeEditPage();

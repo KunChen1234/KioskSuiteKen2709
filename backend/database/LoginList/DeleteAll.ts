@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 async function DeleteAll() {
     await prisma.loginInfo.deleteMany();
     const a = await prisma.loginInfo.findMany();
-    console.log(a);
+    // console.log(a);
 }
 DeleteAll().then(async () => {
     await prisma.$disconnect()

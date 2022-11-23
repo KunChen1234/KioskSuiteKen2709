@@ -12,7 +12,7 @@ function AddLocation() {
     function addNewArea(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
         // dispatch({ type: AreasActionKind.ADD, payload: { newAreaName: newAreaName, newAreaColour: selectedColour } });
-        console.log(`Adding Area ${newLocationName} With Colour ${newBSSID}`);
+        // console.log(`Adding Area ${newLocationName} With Colour ${newBSSID}`);
         if (newLocationName && newBSSID) {
             const newArea: LocationInfo = { locationName: newLocationName, BSSID: newBSSID }
             socket.emit("addNewLocation", newArea);

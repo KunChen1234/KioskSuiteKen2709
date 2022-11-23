@@ -5,7 +5,7 @@ async function Delete() {
     await prisma.user.deleteMany({
     })
     const a = await prisma.user.deleteMany();
-    console.log(a);
+    // console.log(a);
 }
 Delete()
     .then(async () => {

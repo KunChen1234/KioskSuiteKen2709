@@ -11,24 +11,24 @@ function NightShift() {
     const [dayShiftdetail, setdayShiftdetail] = useState<LoginInfo[]>();
     useEffect(() => {
         socket.emit("getDayShift");
-        console.log("send day shift request")
+        // console.log("send day shift request")
         socket.on("DayShifts", (msg) => {
             // console.log("dayshift get data from server");
-            console.log("getDayShfit");
+            // console.log("getDayShfit");
             setdayShiftdetail(msg);
-            console.log("dayshift: "+msg);
+            // console.log("dayshift: "+msg);
         });
     }, [])
     useEffect(() => {
         socket.on("DayShift", (msg) => {
             // console.log("dayshift get data from server");
-            console.log("getDayShfit");
+            // console.log("getDayShfit");
             setdayShiftdetail(msg);
-            console.log("dayshift: "+msg);
+            // console.log("dayshift: "+msg);
         });
         socket.on("UpdateDayShift", (msg) => {
             setdayShiftdetail(msg);
-            console.log("updated" + msg.length)
+            // console.log("updated" + msg.length)
         });
         return function socketCleanup() {
             socket.removeAllListeners("DayShift");
